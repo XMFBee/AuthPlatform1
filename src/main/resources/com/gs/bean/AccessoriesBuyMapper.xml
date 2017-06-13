@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.AccessoriesBuyDAO">
+    <resultMap id="AccessoriesBuyMap" type="com.gs.bean.AccessoriesBuy">
+        <id column="accBuyId" property="accBuyId"/>
+        <result column="accId" property="accId"/>
+        <result column="accUnit" property="accUnit"/>
+        <result column="accBuyCount" property="accBuyCount"/>
+        <result column="accBuyPrice" property="accBuyPrice"/>
+        <result column="accBuyTotal" property="accBuyTotal"/>
+        <result column="accBuyDiscount" property="accBuyDiscount"/>
+        <result column="accBuyMoney" property="accBuyMoney"/>
+        <result column="accBuyTime" property="accBuyTime"/>
+        <result column="accBuyCreatedTime" property="accBuyCreatedTime"/>
+        <result column="companyId" property="companyId"/>
+        <result column="supplyId" property="supplyId"/>
+        <result column="accTypeId" property="accTypeId"/>
+        <result column="accBuyStatus" property="accBuyStatus"/>
+
+        <result column="count" property="count"/>
+        <result column="week" property="week"/>
+
+        <association property="company" javaType="com.gs.bean.Company">
+            <id property="companyId" column="companyId"/>
+            <id property="companyName" column="companyName"/>
+        </association>
+
+        <association property="accessories" javaType="com.gs.bean.Accessories">
+            <id property="accId" column="accId"/>
+            <id property="accName" column="accName"/>
+        </association>
+
+        <association property="accessoriesType" javaType="com.gs.bean.AccessoriesType">
+            <id property="accTypeId" column="accTypeId"/>
+            <id property="accTypeName" column="accTypeName"/>
+        </association>
+
+        <association property="supply" javaType="com.gs.bean.Supply">
+            <id property="supplyId" column="supplyId"/>
+            <id property="supplyName" column="supplyName"/>
+        </association>
+
+    </resultMap>
+
+    <!--
+        查询所有的采购记录
+    -->
+    <select id="queryAll" resultMap="AccessoriesBuyMap" parameterType="com.gs.bean.User">
+        <![CDATA[
+            select * FROM auto_platform.t_accessories_buy ac where 1=1 and ac.accBuyStatus = 'Y'
+        ]]>
+        <if test="companyId != '' and companyId !=null">
+            and ac.companyId = #{companyId}
+        </if>
+    </select>
+
+    <!-- 分页查询 -->
+    <select id="queryByPager" resultMap="AccessoriesBuyMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+          select ab.*,ac.accId,ac.accName,cp.companyId,cp.companyName,atp.accTypeId,atp.accTypeName,sp.supplyId,sp.supplyName
+           from auto_platform.t_accessories_buy ab
+           LEFT JOIN auto_platform.t_accessories ac on ab.accId=ac.accId
+           LEFT JOIN auto_platform.t_company cp on ab.companyId=cp.companyId
+           LEFT JOIN auto_platform.t_accessories_type atp on ab.accTypeId=atp.accTypeId
+           LEFT JOIN auto_platform.t_supply sp on ab.supplyId=sp.supplyId
+           where ab.accBuyStatus = 'Y'
+        ]]>
+        <if test="user.companyId != '' and user.companyId != null">
+            and ab.companyId = #{user.companyId}
+        </if>
+        order by ab.accBuyCreatedTime Desc
+        limit #{beginIndex}, #{pageSize};
+    </select>
+
+    <!-- 查询有多少配件销售采购信息 -->
+    <select id="count" resultType="int" parameterType="com.gs.bean.User">
+        <![CDATA[
+           select count(accBuyId) from auto_platform.t_accessories_buy u where u.accBuyStatus = 'Y'
+        ]]>
+        <if test="companyId != '' and companyId !=null">
+            and u.companyId = #{companyId}
+        </if>
+    </select>
+
+    <!--
+        添加采购记录
+    -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="AccessoriesBuy">
+        <![CDATA[
+            INSERT INTO auto_platform.t_accessories_buy
+            (accBuyId,accId, accBuyCount, accBuyPrice, accBuyTotal,accBuyDiscount, accBuyMoney, accBuyTime, accBuyCreatedTime,companyId,supplyId,accTypeId, accBuyStatus)
+            VALUES
+            (uuid(),#{accId},abs(#{accBuyCount}),abs(#{accBuyPrice}),abs(#{accBuyTotal}),abs(#{accBuyDiscount}),abs(#{accBuyMoney}),#{accBuyTime},CURRENT_TIMESTAMP ,#{companyId},#{supplyId},#{accTypeId},'Y')
+        ]]>
+    </insert>
+
+    <!--
+        更新采购记录信息
+    -->
+    <update id="update" keyProperty="id" parameterType="java.util.Map">
+        <![CDATA[
+        UPDATE auto_platform.t_accessories_buy
+        SET accBuyCount=abs(#{accBuyCount}), accBuyPrice=abs(#{accBuyPrice}),
+        accBuyTotal=abs(#{accBuyTotal}),accBuyDiscount=abs(#{accBuyDiscount}),
+        accBuyMoney=abs(#{accBuyMoney}),accBuyTime=#{accBuyTime},
+        companyId=#{companyId},accId=#{accId},accTypeId=#{accTypeId},supplyId=#{supplyId}
+        WHERE accBuyId=#{accBuyId}
+        ]]>
+    </update>
+
+    <!--
+        根据id删除对应的配件采购记录
+    -->
+    <delete id="deleteById">
+        <![CDATA[
+        DELETE FROM auto_platform.t_accessories_buy WHERE accBuyId=#{accBuyId}
+        ]]>
+    </delete>
+
+
+    <!--
+        冻结配件采购信息
+    -->
+    <update id="inactive" keyProperty="id" parameterType="string">
+        <![CDATA[
+        update auto_platform.t_accessories_buy set accBuyStatus = 'N' where accBuyId = #{accBuyId}
+        ]]>
+    </update>
+
+    <!--
+        激活配件采购信息
+    -->
+    <update id="active" keyProperty="id" parameterType="string">
+        <![CDATA[
+        update auto_platform.t_accessories_buy set accBuyStatus = 'Y' where accBuyId = #{accBuyId}
+        ]]>
+    </update>
+
+    <select id="queryAllStatus" parameterType="string" resultMap="AccessoriesBuyMap">
+        <![CDATA[
+        select * from auto_platform.t_accessories_buy WHERE accBuyStatus=#{accBuyStatus};
+        ]]>
+    </select>
+
+    <select id="queryByPagerDisable" resultMap="AccessoriesBuyMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+       SELECT abu.*,cp.companyId,cp.companyName,ac.accId,ac.accName,atp.accTypeId,atp.accTypeName,sp.supplyId,sp.supplyName FROM auto_platform.t_accessories_buy abu
+       LEFT JOIN auto_platform.t_company cp on cp.companyId=abu.companyId
+       LEFT JOIN auto_platform.t_accessories ac on ac.accId=abu.accId
+       LEFT join auto_platform.t_accessories_type atp on atp.accTypeId=abu.accTypeId
+       LEFT JOIN auto_platform.t_supply sp on sp.supplyId=abu.supplyId
+       WHERE accBuyStatus='N'
+       ]]>
+        <if test="user.companyId != '' and user.companyId !=null">
+            and abu.companyId = #{user.companyId}
+        </if>
+        order by abu.accBuyCreatedTime Desc
+        limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+        <![CDATA[
+          select count(accBuyId) from auto_platform.t_accessories_buy abu where abu.accBuyStatus = 'N'
+        ]]>
+        <if test="companyId != '' and companyId !=null">
+            and abu.companyId = #{companyId}
+        </if>
+    </select>
+
+    <!-- 分页模糊查询 -->
+    <select id="blurredQuery" resultMap="AccessoriesBuyMap" >
+        <![CDATA[
+           select abu.*,cp.companyId,cp.companyName,ac.accId,ac.accName,atp.accTypeId,atp.accTypeName,sp.supplyId,sp.supplyName from auto_platform.t_accessories_buy abu
+           LEFT JOIN auto_platform.t_company cp on abu.companyId=cp.companyId
+           LEFT JOIN auto_platform.t_accessories ac on abu.accId=ac.accId
+           LEFT JOIN auto_platform.t_accessories_type atp on atp.accTypeId=abu.accTypeId
+           LEFT JOIN auto_platform.t_supply sp on sp.supplyId=abu.supplyId
+           where 1=1
+        ]]>
+        <if test="pager.user.companyId != '' and pager.user.companyId !=null">
+            and abu.companyId = #{pager.user.companyId}
+        </if>
+        and(
+        <if test="accBuy.companyId != '' and accBuy.companyId != null">
+            cp.companyName like '%${accBuy.companyId}%'
+        </if>
+        <if test="accBuy.companyId != '' and accBuy.companyId != null and
+            accBuy.accId != '' and accBuy.accId != null">
+            OR
+        </if>
+        <if test="accBuy.accId!='' and accBuy.accId!= null">
+            ac.accName LIKE '%${accBuy.accId}%'
+        </if>
+        ) ORDER by abu.accBuyCreatedTime DESC
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <!-- 分页模糊查询个数 -->
+    <select id="countByBlurred" resultType="int" >
+        <![CDATA[
+           select count(accBuyId) from auto_platform.t_accessories_buy abu
+           LEFT JOIN auto_platform.t_company cp on abu.companyId=cp.companyId
+           LEFT JOIN auto_platform.t_accessories ac on abu.accId=ac.accId
+           LEFT JOIN auto_platform.t_accessories_type atp on atp.accTypeId=abu.accTypeId
+           LEFT JOIN auto_platform.t_supply sp on sp.supplyId=abu.supplyId
+           where 1=1
+        ]]>
+        <if test="user.companyId != '' and user.companyId !=null">
+            and abu.companyId = #{user.companyId}
+        </if>
+        and(
+        <if test="accessoriesBuy.companyId != '' and accessoriesBuy.companyId != null">
+            cp.companyName like '%${accessoriesBuy.companyId}%'
+        </if>
+        <if test="accessoriesBuy.companyId != '' and accessoriesBuy.companyId != null and
+            accessoriesBuy.accId != '' and accessoriesBuy.accId != null">
+            OR
+        </if>
+        <if test="accessoriesBuy.accId!='' and accessoriesBuy.accId!= null">
+            ac.accName LIKE '%${accessoriesBuy.accId}%'
+        </if>)
+    </select>
+    <!--下单报表统计-->
+
+    <select id="queryByCondition" resultMap="AccessoriesBuyMap">
+        <![CDATA[
+            select count(*) as count ,week(ab.accBuyCreatedTime) as week, ab.accBuyCreatedTime from t_accessories_buy ab, t_company cc where ab.companyId = cc.companyId and ab.companyId = #{companyId}
+and ab.accBuyStatus = 'Y' and ab.accBuyCreatedTime >= #{start} and ab.accBuyCreatedTime <= #{end}
+        ]]>
+        <if test="type =='year'">
+            group by date_format(ab.accBuyCreatedTime, '%Y') ORDER BY ab.accBuyCreatedTime ASC;
+        </if>
+        <if test="type =='quarter'">
+            group by concat(date_format(ab.accBuyCreatedTime, '%Y'),FLOOR((date_format(ab.accBuyCreatedTime, '%m')+2)/3)) ORDER BY ab.accBuyCreatedTime ASC;
+        </if>
+        <if test="type =='month'">
+            group by date_format(ab.accBuyCreatedTime, '%y-%m') ORDER BY ab.accBuyCreatedTime ASC;
+        </if>
+        <if test="type =='week'">
+            group by date_format(ab.accBuyCreatedTime, '%y-%m') ORDER BY ab.accBuyCreatedTime ASC;
+        </if>
+        <if test="type =='day'">
+            group by date(ab.accBuyCreatedTime) ORDER BY ab.accBuyCreatedTime ASC;
+        </if>
+    </select>
+
+
+
+    <!--支付记录报表-->
+    <select id="queryByPayCondition" resultMap="AccessoriesBuyMap">
+        <![CDATA[
+       select sum(accBuyMoney) as accBuyMoney ,week(ab.accBuyCreatedTime) as week,ab.accBuyCreatedTime from t_accessories_buy ab, t_company cc where ab.companyId = cc.companyId and ab.companyId = #{companyId}
+and ab.accBuyStatus = 'Y' and ab.accBuyCreatedTime >= #{start} and ab.accBuyCreatedTime <= #{end}
+        ]]>
+        <if test="type =='year'">
+            group by date_format(ab.accBuyCreatedTime, '%Y') ORDER BY ab.accBuyCreatedTime ASC;
+        </if>
+        <if test="type =='quarter'">
+            group by concat(date_format(ab.accBuyCreatedTime, '%Y'),FLOOR((date_format(ab.accBuyCreatedTime, '%m')+2)/3)) ORDER BY ab.accBuyCreatedTime ASC;
+        </if>
+        <if test="type =='month'">
+            group by date_format(ab.accBuyCreatedTime, '%y-%m') ORDER BY ab.accBuyCreatedTime ASC;
+        </if>
+        <if test="type =='week'">
+            group by date_format(ab.accBuyCreatedTime, '%y-%m') ORDER BY ab.accBuyCreatedTime ASC;
+        </if>
+        <if test="type =='day'">
+            group by date(ab.accBuyCreatedTime) ORDER BY ab.accBuyCreatedTime ASC;
+        </if>
+    </select>
+
+</mapper>

@@ -1,0 +1,117 @@
+.content{
+    width: 100%;
+    height: 750px;
+    background: url(/static/img/Frontpage/sg-bg2.jpg);
+}
+.form-box{
+    height: 100%;
+    margin: 0px 90px;
+    text-align: center;
+
+}
+.title-box ul li{
+    display: inline-block;
+    font-size: 2em;
+    margin: 15px 15px;
+}
+.title-box ul li a{
+    color: white;
+}
+.form-box2{
+    width: 650px;
+    float: left;
+    padding: 35px 35px;
+    background: rgba(0,0,0,0.8);
+}
+.form-control{
+    height: 40px;
+}
+input[type=date]{
+    width: 250px;
+}
+input[type=time]{
+    width: 235px;
+    margin-right: 0;
+}
+.form-group label{
+    color: white;
+    font-size: 21px;
+    float: left;
+}
+.yy-date,.yy-time{
+    display: inline;
+    margin-right:15px;
+    float: left;
+}
+.choose{
+    color: #EEEEEE;
+    border-bottom: solid 4px #5bc0de;
+}
+.btn{
+    font-size: 18px;
+    margin: 0 15px;
+    width:170px;
+}
+.select{
+    height: 30px;
+    width: auto;
+    padding: 0 5px;
+    margin: 5px 5px;
+}
+
+.form-wechat{
+    float:right;
+    height: 100%;
+    width: 350px;
+}
+.erm-img{
+    width: 250px;
+    height: 250px;
+    margin-bottom:15px;
+}
+.erm-img img{
+    width: 100%;
+    height:100%;
+}
+.choosecar{
+    height: auto;
+    width: 100%;
+    text-align:left;
+}
+.prompt{
+    color: red;
+    display: none;
+    font-size: 16px;
+    margin: 5px 5px;
+}
+.show{
+    diplay:block;
+}
+.wechat-right{
+    margin: 15px 20px;
+    padding: 28px 28px;
+    background: rgba(0,0,0,0.5);
+}
+.wechat-right:before,.wechat-right:after{
+    width: 0;
+    height:0;
+    content:"";
+    position: absolute;
+    right: 419px;
+    top:280px;
+    border: solid 26px transparent;
+}
+.wechat-right:before{
+    top:250px;
+    border: solid 70px transparent;
+    border-right-color:rgba(0,0,0,0.5) ;
+}
+.wechat-right.remove:before{
+    border:solid 0px transparent;
+}
+
+@media (max-width: 767px) {
+    #wechat-right {
+        display:none;
+    }
+}

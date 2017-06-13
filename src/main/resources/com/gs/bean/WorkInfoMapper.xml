@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.WorkInfoDAO" >
+    <resultMap id="BaseResultMap" type="com.gs.bean.WorkInfo" >
+        <id column="workId" property="workId" jdbcType="VARCHAR" />
+        <result column="recordId" property="recordId" jdbcType="VARCHAR" />
+        <result column="userId" property="userId" jdbcType="VARCHAR" />
+        <result column="workAssignTime" property="workAssignTime" jdbcType="TIMESTAMP" />
+        <result column="workCreatedTime" property="workCreatedTime" jdbcType="TIMESTAMP" />
+        <result column="workStatus" property="workStatus" jdbcType="VARCHAR" />
+        <result column="count" property="count" jdbcType="VARCHAR" />
+        <result column="week" property="week" jdbcType="VARCHAR" />
+
+        <association property="maintainRecord" javaType="com.gs.bean.MaintainRecord">
+            <id column="recordId" property="recordId"/>
+            <result column="startTime" property="startTime"/>
+            <result column="endTime" property="endTime"/>
+            <result column="actualEndTime" property="actualEndTime"/>
+            <result column="recordCreatedTime" property="recordCreatedTime"/>
+            <result column="pickupTime" property="pickupTime"/>
+            <result column="recordDes" property="recordDes"/>
+
+            <association property="checkin" javaType="com.gs.bean.Checkin">
+                <id column="checkinId" property="checkinId" jdbcType="VARCHAR" />
+                <result column="userId" property="userId" jdbcType="VARCHAR" />
+                <result column="appointmentId" property="appointmentId" jdbcType="VARCHAR" />
+                <result column="userName" property="userName" jdbcType="VARCHAR" />
+                <result column="userPhone" property="userPhone" jdbcType="VARCHAR" />
+                <result column="brandId" property="brandId" jdbcType="VARCHAR" />
+                <result column="colorId" property="colorId" jdbcType="VARCHAR" />
+                <result column="modelId" property="modelId" jdbcType="VARCHAR" />
+                <result column="plateId" property="plateId" jdbcType="VARCHAR" />
+                <result column="carPlate" property="carPlate" jdbcType="VARCHAR" />
+                <result column="arriveTime" property="arriveTime" jdbcType="TIMESTAMP" />
+                <result column="carMileage" property="carMileage" jdbcType="DOUBLE" />
+                <result column="carThings" property="carThings" jdbcType="VARCHAR" />
+                <result column="intactDegrees" property="intactDegrees" jdbcType="VARCHAR" />
+                <result column="userRequests" property="userRequests" jdbcType="VARCHAR" />
+                <result column="maintainOrFix" property="maintainOrFix" jdbcType="VARCHAR" />
+                <result column="checkinCreatedTime" property="checkinCreatedTime" jdbcType="TIMESTAMP" />
+                <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+                <result column="checkinStatus" property="checkinStatus" jdbcType="VARCHAR" />
+                <result column="nowOil" property="nowOil" jdbcType="DOUBLE" />
+                <result column="ifClearCar" property="ifClearCar" jdbcType="VARCHAR" />
+
+                <association property="brand" javaType="com.gs.bean.CarBrand">
+                    <id property="brandId" column="brandId"/>
+                    <result property="brandName" column="brandName"/>
+                </association>
+
+                <association property="color" javaType="com.gs.bean.CarColor">
+                    <id property="colorId" column="colorId"/>
+                    <result property="colorName" column="colorName"/>
+                </association>
+
+                <association property="plate" javaType="com.gs.bean.CarPlate">
+                    <id property="plateId" column="plateId"/>
+                    <result property="plateName" column="plateName"/>
+                </association>
+
+                <association property="model" javaType="com.gs.bean.CarModel">
+                    <id property="modelId" column="modelId"/>
+                    <result property="modelName" column="modelName"/>
+                </association>
+
+                <association property="company" javaType="com.gs.bean.Company">
+                    <id property="companyId" column="companyId"/>
+                    <result property="companyName" column="companyName"/>
+                </association>
+
+                <association property="user" javaType="com.gs.bean.User">
+                    <id property="userId" column="userId"/>
+                    <result property="userName" column="userName"/>
+                </association>
+            </association>
+        </association>
+
+        <association property="user" javaType="com.gs.bean.User">
+            <id column="userId" property="userId"/>
+            <result column="userEmail" property="userEmail" />
+            <result column="userPhone" property="userPhone" />
+            <result column="userNickname" property="userNickname" />
+            <result column="userIdentity" property="userIdentity" />
+            <result column="userName" property="userName" />
+            <result column="companyId" property="companyId" />
+        </association>
+    </resultMap>
+
+    <select id="count" resultType="int" parameterType="com.gs.bean.User">
+        <![CDATA[
+          SELECT count(workId) FROM t_work_info w
+          left join t_maintain_record record on w.recordId = record.recordId
+          left join t_checkin checkin on record.checkinId = checkin.checkinId
+          where 1 = 1
+        ]]>
+        <if test="status != null and status != ''">
+            and w.workStatus=  #{status}
+        </if>
+        <if test="user.companyId !=null and user.companyId != ''">
+            and checkin.companyId = #{user.companyId}
+        </if>
+    </select>
+
+    <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+        <![CDATA[
+        SELECT count(workId) FROM t_work_info w
+          left join t_maintain_record record on w.recordId = record.recordId
+          left join t_checkin checkin on record.checkinId = checkin.checkinId
+          where 1 = 1
+       ]]>
+        <if test="status != null and status != ''">
+            and w.workStatus=  #{status}
+        </if>
+        <if test="user.companyId !=null and user.companyId != ''">
+            and checkin.companyId = #{user.companyId}
+        </if>
+    </select>
+
+    <!--分页所有完成查询全部-->
+    <select id="queryByPager" resultMap="BaseResultMap" parameterType="hashMap">
+        <![CDATA[
+            select w.*,tmR.recordId,tmR.checkinId,tmR.pickupTime,
+            u.userId,u.userNickname,
+            comp.companyName
+             FROM t_work_info w
+            Left JOIN t_maintain_Record tmR on w.recordId = tmR.recordId
+            left join t_checkin checkin on tmR.checkinId = checkin.checkinId
+            Left JOIN t_user u on w.userId = u.userId
+            left join t_company comp on checkin.companyId = comp.companyId
+            where 1 = 1
+        ]]>
+
+        <if test="status != null and status != ''">
+            and w.workStatus=  #{status}
+        </if>
+        <if test="pager.user.companyId !=null and pager.user.companyId != '' ">
+            and checkin.companyId = #{pager.user.companyId}
+        </if>
+        order by w.workCreatedTime Desc
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <!--分页查询维修保养记录-->
+    <select id="queryByPagerschelude" resultMap="BaseResultMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+         select wi.*,m.*, ck.*, wi.recordId, wi.userId,cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName,
+            company.companyName, cb.brandId, cb.brandName
+            from t_work_info wi, t_maintain_record m, t_checkin ck, t_car_brand cb,
+             t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+              where wi.recordId = m.recordId and m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+              and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+             and ck.plateId = cp.plateId and ck.companyId = company.companyId
+        ]]>
+        <if test="user.companyId !=null and user.companyId != '' ">
+            and ck.companyId = #{user.companyId}
+        </if>
+        order by wi.workCreatedTime Desc
+        limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <!--车主维修保养记录查询-->
+    <select id="queryByFront" resultMap="BaseResultMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+         select wi.*,m.*, ck.*, wi.recordId, wi.userId,cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName,
+            company.companyName, cb.brandId, cb.brandName
+            from t_work_info wi, t_maintain_record m, t_checkin ck, t_car_brand cb,
+             t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+              where wi.recordId = m.recordId and m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+              and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+             and ck.plateId = cp.plateId and ck.companyId = company.companyId and ck.userId = #{user.userId}
+        ]]>
+        order by wi.workCreatedTime Desc
+        limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <select id="countByFront" resultType="int" parameterType="com.gs.bean.User">
+        <![CDATA[
+        SELECT count(*) FROM t_work_info w, t_maintain_record m, t_checkin ck where w.recordId = m.recordId and m.checkinId = ck.checkinId and ck.userId = #{userId}
+       ]]>
+    </select>
+
+    <!--分页所有未完成查询全部-->
+    <select id="queryByPagerDisable" resultMap="BaseResultMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+            select w.*,tmR.recordId,tmR.checkinId,u.userId,
+            u.userNickname FROM t_work_info w
+            Left JOIN t_maintain_Record tmR on w.recordId = tmR.recordId
+            Left JOIN t_checkin checkin on tmR.checkinId = checkin.checkinId
+            Left JOIN t_user u on u.userId = w.userId
+            where w.workStatus = 'N'
+        ]]>
+        <if test="user.companyId !=null and  user.companyId != ''">
+            and checkin.companyId = #{user.companyId}
+        </if>
+        order by w.workCreatedTime Desc
+        limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <select id="queryAll" resultMap="BaseResultMap" parameterType="com.gs.bean.User">
+        <![CDATA[
+        SELECT * FROM t_work_info
+         ]]>
+        <if test="companyId !=null and companyId != '' ">
+            and s.companyId = #{companyId}
+        </if>
+    </select>
+
+    <!-- 添加数据 -->
+    <insert id="insert" keyProperty="id" parameterType="com.gs.bean.WorkInfo">
+        <![CDATA[
+          INSERT INTO t_work_info
+          (workId,recordId, userId, workAssignTime, workCreatedTime,workStatus)
+          VALUES
+          (uuid(),#{recordId},#{userId},#{workAssignTime},now(),'N')
+      ]]>
+    </insert>
+
+    <!--更新数据-->
+    <update id="update" keyProperty="workId" parameterType="com.gs.bean.WorkInfo">
+        <![CDATA[
+          UPDATE t_work_info SET workId=#{workId},userId=#{userId},workAssignTime=#{workAssignTime} WHERE workId=#{workId}
+        ]]>
+    </update>
+
+    <!--未完成工单-->
+    <update id="inactive" keyProperty="workId" parameterType="string">
+        <![CDATA[
+            UPDATE t_work_info set workStatus='N' WHERE workId = #{workId}
+           ]]>
+    </update>
+
+    <!--已完成工单-->
+    <update id="active" keyProperty="workId" parameterType="string">
+        <![CDATA[
+        UPDATE t_work_info set workStatus='Y' WHERE workId = #{workId}
+         ]]>
+    </update>
+
+    <!--员工工单报表-->
+    <select id="queryByCondition" resultMap="BaseResultMap" parameterType="com.gs.bean.User">
+        <![CDATA[
+   select count(*) as count ,week(wi.workCreatedTime) as week, wi.workCreatedTime from t_work_info wi, t_maintain_record mr, t_checkin c where
+   wi.recordId = mr.recordId and mr.checkinId = c.checkinId and wi.workStatus = 'Y' and c.companyId = #{companyId} and
+ wi.workCreatedTime >= #{start} and wi.workCreatedTime <= #{end}
+        ]]>
+        <if test="maintainOrFix ==0">
+        </if>
+        <if test="maintainOrFix ==1">
+            and c.maintainOrFix = '保养'
+        </if>
+        <if test="maintainOrFix ==2">
+            and c.maintainOrFix = '维修'
+        </if>
+        <if test="type =='year'">
+            group by date_format(wi.workCreatedTime, '%Y') ORDER BY wi.workCreatedTime ASC;
+        </if>
+        <if test="type =='quarter'">
+            group by concat(date_format(wi.workCreatedTime, '%Y'),FLOOR((date_format(wi.workCreatedTime, '%m')+2)/3)) ORDER BY wi.workCreatedTime ASC;
+        </if>
+        <if test="type =='month'">
+            group by date_format(wi.workCreatedTime, '%y-%m') ORDER BY wi.workCreatedTime ASC;
+        </if>
+        <if test="type =='week'">
+            group by date_format(wi.workCreatedTime, '%y-%m') ORDER BY wi.workCreatedTime ASC;
+        </if>
+        <if test="type =='day'">
+            group by date(workCreatedTime) ORDER BY wi.workCreatedTime ASC;
+        </if>
+
+    </select>
+
+
+    <!--分页所有完成查询全部-->
+    <select id="blurredQuery" resultMap="BaseResultMap">
+        <![CDATA[
+            select w.*,tmR.recordId,tmR.checkinId,tmR.pickupTime,
+            u.userId,u.userNickname,
+            comp.companyName
+            FROM t_work_info w
+            Left JOIN t_maintain_Record tmR on w.recordId = tmR.recordId
+            Left JOIN t_checkin checkin on  tmR.checkinId = checkin.checkinId
+            Left JOIN t_user u on w.userId = u.userId
+            LEFT JOIN t_company comp on checkin.companyId = comp.companyId
+            where 1 = 1
+        ]]>
+        <if test="pager.user.companyId != null and pager.user.companyId != ''">
+            and comp.companyId = #{pager.user.companyId}
+        </if>
+        and(
+        <if test="workInfo.user.company.companyName != null and workInfo.user.company.companyName != '' ">
+            comp.companyName like "%${workInfo.user.company.companyName}%"
+        </if>
+        <if test="workInfo.user.company.companyName != null and workInfo.user.company.companyName != ''
+              and workInfo.user.userNickname != null and workInfo.user.userNickname != '' ">
+            or
+        </if>
+        <if test="workInfo.user.userNickname != null and workInfo.user.userNickname != '' " >
+            u.userNickname  like "%${workInfo.user.userNickname}%"
+        </if>
+        )
+        <if test="workInfo.workStatus != null and workInfo.workStatus != '' ">
+            and w.workStatus = #{workInfo.workStattus}
+        </if>
+
+        order by w.workCreatedTime Desc
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+
+    <select id="countByBlurred" resultType="int" >
+        <![CDATA[
+             select count(workId) FROM t_work_info w
+            Left JOIN t_maintain_Record tmR on w.recordId = tmR.recordId
+            left join t_checkin checkin on tmR.checkinId = checkin.checkinId
+            Left JOIN t_user u on w.userId = u.userId
+            LEFT JOIN t_company comp on u.companyId = comp.companyId
+            where 1 = 1
+        ]]>
+        <if test="user.companyId != null and user.companyId != ''">
+            and checkin.companyId = #{user.companyId}
+        </if>
+        and(
+        <if test="workInfo.user.company.companyName != null and workInfo.user.company.companyName != '' ">
+            comp.companyName like "%${workInfo.user.company.companyName}%"
+        </if>
+        <if test="workInfo.user.company.companyName != null and workInfo.user.company.companyName != ''
+              and workInfo.user.userNickname != null and workInfo.user.userNickname != '' ">
+            or
+        </if>
+        <if test="workInfo.user.userNickname != null and workInfo.user.userNickname != '' " >
+            u.userNickname  like "%${workInfo.user.userNickname}%"
+        </if>
+        )
+        <if test="workInfo.workStatus != null and workInfo.workStatus != '' ">
+            and w.workStatus = #{workInfo.workStattus}
+        </if>
+    </select>
+
+    <select id="queryByUserId" resultMap="BaseResultMap">
+        <![CDATA[
+          select u.userId,u.userName, wif.recordId,wif.userId,wif.workCreatedTime from auto_platform.t_work_info wif
+          LEFT JOIN auto_platform.t_maintain_record mr on mr.recordId=wif.recordId
+          LEFT join auto_platform.t_user u on u.userId=wif.userId
+          WHERE wif.userId=#{userId}
+        ]]>
+        order by wif.workCreatedTime Desc
+        limit 1, 5
+    </select>
+
+</mapper>

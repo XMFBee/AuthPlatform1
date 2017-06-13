@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.CarModelDAO" >
+  <resultMap id="carmodelMap" type="carModel" >
+    <id column="modelId" property="modelId" jdbcType="VARCHAR" />
+    <result column="modelName" property="modelName" jdbcType="VARCHAR" />
+    <result column="modelDes" property="modelDes" jdbcType="VARCHAR" />
+    <result column="brandId" property="brandId" jdbcType="VARCHAR" />
+    <result column="modelStaus" property="modelStaus" jdbcType="VARCHAR" />
+      <association property="carBrand" javaType="com.gs.bean.CarBrand">
+          <id property="brandId" column="brandId"/>
+          <result property="brandName" column="brandName"/>
+      </association>
+  </resultMap>
+
+  <select id="queryAll" resultMap="carmodelMap" parameterType="com.gs.bean.User">
+      <![CDATA[
+           select m.*,b.brandName from t_car_model m,t_car_brand b where 1=1 and m.modelStaus = 'Y' and m.brandId=b.brandId
+        ]]>
+  </select>
+
+    <select id="queryByBrandId" resultMap="carmodelMap" parameterType="com.gs.bean.User">
+        <![CDATA[
+           select m.*,b.brandId from t_car_model m,t_car_brand b where m.brandId=b.brandId and b.brandId = #{id}
+        ]]>
+    </select>
+
+    <select id="queryByPager" resultMap="carmodelMap"  parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+          select cm.*, cb.brandId, cb.brandName from auto_platform.t_car_model cm
+          left join t_car_brand cb on cm.brandId = cb.brandId
+          where cm.modelStaus = 'Y'
+           ]]>
+        limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <select id="count" resultType="int" parameterType="com.gs.bean.User">
+        <![CDATA[
+      select count(modelId) from t_car_model cm where cm.modelStaus = 'Y'
+    ]]>
+    </select>
+
+  <insert id="insert" parameterType="carModel">
+      <![CDATA[
+            insert into t_car_model(modelId,modelName,modelDes,brandId,modelStaus) values (uuid(),#{modelName},#{modelDes},#{brandId},'Y')
+       ]]>
+  </insert>
+
+  <update id="update" parameterType="carModel">
+      <![CDATA[
+            update t_car_model set modelName = #{modelName},modelDes = #{modelDes},modelStaus = 'Y',brandId = #{brandId} where modelId = #{modelId}
+      ]]>
+  </update>
+
+
+    <!-- 分页查询禁用 -->
+    <select id="queryByPagerDisable" resultMap="carmodelMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+       select cm.*, cb.brandId,cb.brandName from t_car_model cm left join t_car_brand cb on cm.brandId = cb.brandId where cm.modelStaus = 'N'
+    ]]>
+        limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <!-- 分页查询禁用个数 -->
+    <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+        <![CDATA[
+      select count(modelId) from t_car_model cm where cm.modelStaus = 'N'
+    ]]>
+    </select>
+
+    <!--  查询此车型名称是否已存在 -->
+    <select id="querymodelName" resultType="int">
+        <![CDATA[
+      select count(modelName) from t_car_model where modelName = #{modelName}
+    ]]>
+    <if test="modelId != null and modelId != ''">
+        and modelId != #{modelId}
+    </if>
+    </select>
+
+    <!--冻结数据-->
+    <update id="inactive" keyProperty="modelId" parameterType="carModel">
+        <![CDATA[
+         update t_car_model set modelStaus = 'N' where modelId = #{modelId}
+        ]]>
+    </update>
+
+    <!--激活数据-->
+    <update id="active" keyProperty="modelId" parameterType="carModel">
+        <![CDATA[
+        update t_car_model set modelStaus = 'Y' where modelId = #{modelId}
+        ]]>
+    </update>
+
+    <select id="blurredQuery" resultMap="carmodelMap"  parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+            select cm.*, cb.brandId, cb.brandName from auto_platform.t_car_model cm
+            left join t_car_brand cb on cm.brandId = cb.brandId
+            where 1=1
+       ]]>
+        and(
+            <if test="carModel.modelName != '' and carModel.modelName != null">
+               cm.modelName like '%${carModel.modelName}%'
+            </if>
+            <if test="carModel.modelName != '' and carModel.modelName != null and carModel.brandId != '' and carModel.brandId != null">
+                or
+            </if>
+            <if test="carModel.brandId != '' and carModel.brandId != null">
+               cb.brandName like '%${carModel.brandId}%'
+            </if>
+        )
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <select id="countByBlurred" resultType="int">
+    <![CDATA[
+          select count(*) from auto_platform.t_car_model cm
+          left join t_car_brand cb on cm.brandId = cb.brandId
+          where 1=1
+      ]]>
+        and(
+        <if test="carModel.modelName != '' and carModel.modelName != null">
+            cm.modelName like '%${carModel.modelName}%'
+        </if>
+        <if test="carModel.modelName != '' and carModel.modelName != null and carModel.brandId != '' and carModel.brandId != null">
+            or
+        </if>
+        <if test="carModel.brandId != '' and carModel.brandId != null">
+            cb.brandName like '%${carModel.brandId}%'
+        </if>
+        )
+    </select>
+</mapper>

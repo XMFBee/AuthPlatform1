@@ -1,0 +1,33 @@
+.content{
+    margin: 20px 90px;
+}
+
+/*搜索框和按钮*/
+.input-text{
+    width: 350px;
+    height: 40px;
+    border: #01AAED 3px solid ;
+}
+.btn{
+    width: 150px;
+    height: 40px;
+    margin-left: -4px;
+    margin-top: -2px;
+    background:#01AAED;
+    color: white;
+    border-radius: 0px;
+    font-size: 18px;
+}
+.btn:hover span{
+    color:white;
+}
+/*排序*/
+.sorting {
+    float: right;
+    font-size: 18px;
+    margin-right: 38px;
+}
+.sorting li {
+    list-style-type: none;
+
+}

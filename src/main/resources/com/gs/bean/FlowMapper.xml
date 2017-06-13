@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.FlowDAO" >
+
+
+    <select id = "queryAcquisitionByPager" resultType="int">
+    </select>
+
+    <select id = "queryReturnedByPager" resultType="int">
+    </select>
+
+    <select id = "queryHistoryByPager" resultType="int">
+    </select>
+
+    <select id = "countAcquisition" resultType="int">
+    </select>
+
+    <select id = "countReturned" resultType="int">
+    </select>
+
+    <select id = "countHistory" resultType="int">
+    </select>
+
+
+    <!--已完成工单-->
+    <update id="active" keyProperty="workId" parameterType="string">
+      <![CDATA[
+        UPDATE t_work_info set workStatus='Y' WHERE workId = #{workId}
+         ]]>
+    </update>
+
+</mapper>

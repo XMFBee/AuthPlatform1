@@ -1,0 +1,89 @@
+#main{
+    width: 100%;
+}
+#first, #two, #three, #four{
+    width: 100%;
+    height: 650px;
+}
+.content-left{
+    height: 95%;
+}
+.first-left-bg img{
+    height: 90%;
+}
+.container{
+    padding-top: 100px;
+    height: 95%;
+}
+.des-txt{
+    font-size:16px;
+    padding-left: 21px;
+}
+.btn{
+    margin: 15px 10px;
+    width: 269px;
+    height:54px;
+    font-size: 20px;
+}
+.eweim{
+    background: url(/static/img/Frontpage/2wei.jpg) no-repeat;
+    float: right;
+    margin: 10px 15px;
+    width: 135px;
+    height: 135px;
+}
+#thirdBar{
+    background: url(/static/img/Frontpage/sg-bg2.jpg)50% -600px;
+    height: 600px;
+}
+#fourthBar{
+    background: url(/static/img/Frontpage/sg-bg3.jpg)50% -600px;
+    height: 600px;
+}
+#fifthBar{
+    background: url(/static/img/Frontpage/sg-bg.jpg)50% -600px;
+    height:600px;
+}
+#sixthBar{
+    background: url(/static/img/Frontpage/sg-bg4.jpg)50% -600px;
+    height: 600px;
+}
+.eweima img{
+    height: 90px;
+    width: 90px;
+}
+.nav-two{
+    position: fixed;
+    z-index:999;
+    width: 100%;
+    margin-top: -50px;
+    min-width:1350px;
+    height:auto;
+    border:solid #d4d4d4 0.5px;
+    background-color: white;
+    box-shadow: 5px 0px 3px grey;
+}
+.container-nav .nav-ul li:hover{
+    background-color: #e2e2e2;
+}
+.nav-ul li{
+    float: left;
+    list-style-type: none;
+    margin:0px 0px;
+    padding:10px 35px;
+    text-align: center;
+    font-size: 23px;
+}
+
+.nav-ul{
+    margin-bottom:0px;
+}
+.container-nav{
+    margin-left: 20%;
+}
+#computer{
+    background:url(/static/img/Frontpage/computer.png)0 10px no-repeat;
+}
+.nav-two .container-nav .nav-ul a{
+    color: grey;
+}

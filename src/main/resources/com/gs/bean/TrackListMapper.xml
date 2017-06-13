@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.TrackListDAO" >
+  <resultMap id="BaseResultMap" type="trackList" >
+    <id column="trackId" property="trackId" jdbcType="VARCHAR" />
+    <result column="userId" property="userId" jdbcType="VARCHAR" />
+    <result column="trackContent" property="trackContent" jdbcType="VARCHAR" />
+    <result column="serviceEvaluate" property="serviceEvaluate" jdbcType="INTEGER" />
+    <result column="trackUser" property="trackUser" jdbcType="VARCHAR" />
+    <result column="trackCreatedTime" property="trackCreatedTime" jdbcType="TIMESTAMP" />
+    <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+
+    <association property="user" javaType="com.gs.bean.User">
+      <id column="user_id" property="userId"></id>
+      <result column="user_name" property="userName"></result>
+    </association>
+
+    <association property="checkin" javaType="com.gs.bean.Checkin">
+      <id column="checkin_id" property="userId"></id>
+      <result column="checkin_name" property="userName"></result>
+    </association>
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id column="company_id" property="companyId"></id>
+      <result column="companyName" property="companyName"></result>
+      <result column="companyAddress" property="companyAddress"></result>
+      <result column="companyTel" property="companyTel"></result>
+    </association>
+  </resultMap>
+
+  <select id="queryByPager" resultMap="BaseResultMap" parameterType="com.gs.common.bean.Pager">
+    select t.*,u.userId AS user_id,u.userName AS user_name,
+    c.userId AS checkin_id,c.userName AS checkin_name,
+    com.companyId as company_id, com.companyName,com.companyAddress,com.companyTel
+    from t_track_list t,t_company com,
+    t_checkin c, t_user u where u.userId = t.userId and t.trackUser = c.userId
+    and c.checkinStatus = 'Y' and t.companyId = com.companyId
+    <if test="user.companyId != null and user.companyId != ''">
+    and t.companyId = #{user.companyId}
+    </if>
+    order by t.trackCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User" >
+    select count(*) from t_track_list t,t_company com,
+    t_checkin c, t_user u where u.userId = t.userId and t.trackUser = c.userId
+    and c.checkinStatus = 'Y' and t.companyId = com.companyId
+    <if test="companyId != null and companyId != ''">
+      and t.companyId = #{companyId}
+    </if>
+  </select>
+
+  <update id="update" parameterType="trackList">
+    update t_track_list set trackContent=#{trackContent},serviceEvaluate=#{serviceEvaluate} where trackId = #{trackId}
+  </update>
+
+  <insert id="insert" parameterType="trackList">
+    insert into t_track_list(trackId,userId,trackContent,serviceEvaluate,trackUser,trackCreatedTime,companyId) values(uuid(),#{userId},#{trackContent},#{serviceEvaluate},#{trackUser},now(),#{companyId})
+  </insert>
+
+  <select id="queryByPagerName" resultMap="BaseResultMap">
+    select t.*,u.userId AS user_id,u.userName AS user_name,
+    c.userId AS checkin_id,c.userName AS checkin_name,
+    com.companyId as company_id, com.companyName,com.companyAddress,com.companyTel
+    from t_track_list t,t_company com,
+    t_checkin c, t_user u where u.userId = t.userId and t.trackUser = c.userId
+    and c.checkinStatus = 'Y' and t.companyId = com.companyId
+    <if test="pager.user.companyId != null and pager.user.companyId != ''">
+      and t.companyId = #{pager.user.companyId}
+    </if>
+    <if test="trackList.userId != null and trackList.userId != ''">
+      and u.userName like concat('%',#{trackList.userId},'%')
+    </if>
+    <if test="trackList.trackContent != null and trackList.trackContent != ''">
+      and t.trackContent like concat('%',#{trackList.trackContent},'%')
+    </if>
+    <if test="trackList.serviceEvaluate != null and trackList.serviceEvaluate != ''">
+      and t.serviceEvaluate like concat('%',#{trackList.serviceEvaluate},'%')
+    </if>
+    <if test="trackList.trackUser != null and trackList.trackUser != ''">
+      and c.userName like concat('%',#{trackList.trackUser},'%')
+    </if>
+    order by t.trackCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countName"  resultType="int">
+    select count(*) from t_track_list t,t_company com,
+    t_checkin c, t_user u where u.userId = t.userId and t.trackUser = c.userId
+    and c.checkinStatus = 'Y' and t.companyId = com.companyId
+    <if test="user.companyId != null and user.companyId != ''">
+      and t.companyId = #{user.companyId}
+    </if>
+    <if test="trackList.userId != null and trackList.userId != ''">
+      and u.userName like concat('%',#{trackList.userId},'%')
+    </if>
+    <if test="trackList.trackContent != null and trackList.trackContent != ''">
+      and t.trackContent like concat('%',#{trackList.trackContent},'%')
+    </if>
+    <if test="trackList.serviceEvaluate != null and trackList.serviceEvaluate != ''">
+      and t.serviceEvaluate like concat('%',#{trackList.serviceEvaluate},'%')
+    </if>
+    <if test="trackList.trackUser != null and trackList.trackUser != ''">
+      and c.userName like concat('%',#{trackList.trackUser},'%')
+    </if>
+  </select>
+
+</mapper>

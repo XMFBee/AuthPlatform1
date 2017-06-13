@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.MaintainFixDAO" >
+  <resultMap id="MaintainFixMap" type="com.gs.bean.MaintainFix" >
+    <id column="maintainId" property="maintainId" jdbcType="VARCHAR" />
+    <result column="maintainName" property="maintainName" jdbcType="VARCHAR" />
+    <result column="count" property="count"/>
+
+    <result column="mdCreatedTime" property="mdCreatedTime"/>
+    <result column="maintainHour" property="maintainHour" jdbcType="DOUBLE" />
+    <result column="maintainMoney" property="maintainMoney" jdbcType="DOUBLE" />
+    <result column="maintainManHourFee" property="maintainManHourFee" jdbcType="DOUBLE" />
+    <result column="maintainOrFix" property="maintainOrFix" jdbcType="VARCHAR" />
+    <result column="maintainDes" property="maintainDes" jdbcType="VARCHAR" />
+    <result column="maintainStatus" property="maintainStatus" jdbcType="VARCHAR" />
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id property="companyId" column="companyId"/>
+      <result property="companyName" column="companyName"/>
+    </association>
+    <association property="maintainFixAcc" javaType="com.gs.bean.MaintainFixAcc">
+      <id property="mainAccId" column="mainAccId"/>
+      <result property="accCount" column="accCount"/>
+      <result property="maintainId" column="maintainId"/>
+    </association>
+    <association property="accessories" javaType="com.gs.bean.Accessories">
+      <id property="accId" column="accId"/>
+      <result property="accName" column="accName"/>
+    </association>
+  </resultMap>
+
+  <!--查询所有维修保养项目-->
+  <select id="queryAll" resultMap="MaintainFixMap" parameterType="com.gs.bean.User">
+    <![CDATA[
+            select * from auto_platform.t_maintain_fix fix where fix.maintainStatus = 'Y'
+        ]]>
+    <if test="companyId != '' and companyId !=null">
+      and fix.companyId = #{companyId}
+    </if>
+  </select>
+
+
+  <!--  查询此保养名称是否已存在 -->
+  <select id="querymaintainName" resultType="int">
+    <![CDATA[
+      select count(maintainName) from t_maintain_fix where maintainName = #{maintainName} and maintainOrFix = '保养'
+    ]]>
+    <if test="maintainId != null and maintainId != ''">
+      and maintainId != #{maintainId}
+    </if>
+  </select>
+
+  <!--  查询此维修名称是否已存在 -->
+  <select id="querymaintainNameMaintain" resultType="int">
+    <![CDATA[
+      select count(maintainName) from t_maintain_fix where maintainName = #{maintainName} and maintainOrFix = '维修'
+    ]]>
+    <if test="maintainId != null and maintainId != ''">
+      and maintainId != #{maintainId}
+    </if>
+  </select>
+
+  <!--分页查询所有维修保养项目-->
+  <select id="queryByPagerAll" resultType="list" resultMap="MaintainFixMap" parameterType="com.gs.common.bean.Pager">
+     <![CDATA[
+          select fix.*, fc.* from auto_platform.t_maintain_fix fix
+          LEFT JOIN t_maintain_fix_acc fc ON fix.maintainId = fc.maintainId
+          where fix.maintainStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and fix.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="countqueryByPagerAll" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+        select count(maintainStatus) from t_maintain_fix  mf where mf.maintainStatus = 'Y'
+         ]]>
+    <if test="companyId != '' and companyId !=null">
+      and mf.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!--分页查询维修项目-->
+  <select id="queryByPager" resultType="list" resultMap="MaintainFixMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+          select mf.*, c.companyName from t_maintain_fix  mf, t_company  c where mf.companyId = c.companyId and mf.maintainOrFix = '维修' and mf.maintainStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and mf.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+			select count(maintainStatus) from t_maintain_fix mf  where mf.maintainOrFix = '维修'and mf.maintainStatus = 'Y'
+		]]>
+    <if test="companyId != '' and companyId !=null">
+      and mf.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!--分页查询保养项目-->
+  <select id="queryByPagerMaintain" resultType="list" resultMap="MaintainFixMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+            select mf.*, c.companyName from t_maintain_fix  mf, t_company  c where mf.companyId = c.companyId and mf.maintainOrFix = '保养' and mf.maintainStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and mf.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="countMaintain" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(maintainStatus) from t_maintain_fix mf  where mf.maintainOrFix = '保养'and mf.maintainStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and mf.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!--添加维修保养项目-->
+  <insert id="insert"  parameterType="MaintainFix">
+    <![CDATA[
+			insert into t_maintain_fix (maintainId,maintainName,maintainHour,maintainMoney,maintainManHourFee,maintainOrFix,maintainDes,maintainStatus,companyId) values (UUID(),#{maintainName},#{maintainHour},#{maintainMoney},#{maintainManHourFee},#{maintainOrFix},#{maintainDes},'Y',#{companyId})
+		]]>
+  </insert>
+  <!--修改维修保养项目-->
+  <update id="update" parameterType="MaintainFix">
+    <![CDATA[
+			update t_maintain_fix set maintainName = #{maintainName} , maintainHour = #{maintainHour} , maintainMoney = #{maintainMoney} , maintainManHourFee = #{maintainManHourFee} , maintainDes = #{maintainDes} , maintainStatus = 'Y', companyId = #{companyId} where maintainId = #{maintainId}
+		]]>
+  </update>
+
+  <!-- 分页保养查询禁用 -->
+  <select id="queryByPagerDisable" resultMap="MaintainFixMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+    select mf.*, c.companyId,c.companyName from t_maintain_fix mf left join t_company c on mf.companyId = c.companyId where mf.maintainStatus = 'N' and mf.maintainOrFix = '保养'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and mf.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+
+  <!-- 分页查询禁用个数 -->
+  <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(maintainId) from t_maintain_fix mf where mf.maintainStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and mf.companyId = #{companyId}
+    </if>
+  </select>
+
+
+  <!-- 分页维修查询禁用 -->
+  <select id="queryByPagerDisableService" resultMap="MaintainFixMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+    select mf.*, c.companyId,c.companyName from t_maintain_fix mf left join t_company c on mf.companyId = c.companyId where mf.maintainStatus = 'N' and mf.maintainOrFix = '维修'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and mf.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+
+
+  <!-- 分页查询禁用个数 -->
+  <select id="countByDisableService" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(maintainId) from t_maintain_fix mf where mf.maintainStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and mf.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!--冻结数据-->
+  <update id="inactive" keyProperty="maintainId" parameterType="MaintainFix">
+    <![CDATA[
+         update t_maintain_fix set maintainStatus = 'N' where maintainId = #{maintainId}
+        ]]>
+  </update>
+
+  <!--激活数据-->
+  <update id="active" keyProperty="maintainId" parameterType="MaintainFix">
+    <![CDATA[
+        update t_maintain_fix set maintainStatus = 'Y' where maintainId = #{maintainId}
+        ]]>
+  </update>
+
+  <!--根据汽修公司， 汽修项目，查询项目名字（id）-->
+  <select id="queryByMaintainName" resultMap="MaintainFixMap">
+    <![CDATA[
+    select mf.maintainId, mf.maintainName, md.mdCreatedTime from t_maintain_detail md, t_maintain_fix mf, t_company c where md.maintainItemId = mf.maintainId and
+    c.companyId = mf.companyId and mf.maintainStatus = 'Y'  and c.companyId = #{companyId} and mf.maintainOrFix = #{maintainOrFix}
+    ORDER BY md.mdCreatedTime ASC;
+        ]]>
+  </select>
+
+  <!--维修项目统计报表-->
+  <select id="queryByCondition" resultMap="MaintainFixMap">
+    <![CDATA[
+ select count(md.maintainDetailId) as count, md.mdCreatedTime as mdCreatedTime  from t_maintain_detail md, t_maintain_fix mf, t_company c where md.maintainItemId = mf.maintainId and
+    c.companyId = mf.companyId and mf.maintainStatus = 'Y'  and c.companyId = #{companyId} and mf.maintainOrFix = #{maintainOrFix} and mf.maintainId = #{maintainId}
+        ]]>
+    <if test="type =='year'">
+      group by date_format(md.mdCreatedTime, '%Y') ORDER BY md.mdCreatedTime ASC;
+    </if>
+    <if test="type =='quarter'">
+      group by concat(date_format(md.mdCreatedTime, '%Y'),FLOOR((date_format(md.mdCreatedTime, '%m')+2)/3)) ORDER BY md.mdCreatedTime ASC;
+    </if>
+    <if test="type =='month'">
+      group by date_format(md.mdCreatedTime, '%y-%m') ORDER BY md.mdCreatedTime ASC;
+    </if>
+    <if test="type =='week'">
+      group by date_format(md.mdCreatedTime, '%y-%m') ORDER BY md.mdCreatedTime ASC;
+    </if>
+    <if test="type =='day'">
+      group by date(md.mdCreatedTime) ORDER BY md.mdCreatedTime ASC;
+    </if>
+  </select>
+
+  <select id="queryByCompanyId" resultMap="MaintainFixMap">
+    <![CDATA[
+      SELECT mx.maintainName,mx.maintainMoney,mx.maintainOrFix,mx.maintainHour
+      from auto_platform.t_maintain_fix mx
+      WHERE mx.companyId=#{companyId}
+    ]]>
+  </select>
+
+</mapper>

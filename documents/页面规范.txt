@@ -1,0 +1,6 @@
+1.按钮一律用h+的按钮, 不可使用h+的线性按钮或圆形按钮
+2.头像一律为圆形, 和左侧菜单栏统一
+3.字体用<span></span>框住, 增加一个class, <span class="fontStyle">文本</span>, 如果有label, p..标签, 也可直接在大标签下增加这个class, 用来规范字体, fontStyle代码如下:{font-weight: 100;font-size: 16px;}, 如果你的文字属于标题也可自行增加style放大文字
+4.提示窗一律为sweetAlert提示窗, 我在table.jsp的237-240使用过, 可以直接导入js进行调用, 在h+的提示窗也有实例,成功必须为勾,失败必须为叉,警告必须为感叹号
+5.每个页面都必须在body里加上<%@include file="../backstage/contextmenu.jsp"%> 这么一句话, 导入contextmenu.js, 这个为右键菜单的配置
+6...想到再加

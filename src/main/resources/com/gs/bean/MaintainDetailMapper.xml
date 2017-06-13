@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.MaintainDetailDAO" >
+  <resultMap id="maintainDetailMap" type="com.gs.bean.MaintainDetail" >
+    <id column="maintainDetailId" property="maintainDetailId" jdbcType="VARCHAR" />
+    <result column="maintainRecordId" property="maintainRecordId" jdbcType="VARCHAR" />
+    <result column="count" property="count"/>
+    <result column="maintainItemId" property="maintainItemId" jdbcType="VARCHAR" />
+    <result column="maintainDiscount" property="maintainDiscount" jdbcType="DOUBLE" />
+    <result column="mdcreatedTime" property="mdcreatedTime" jdbcType="TIMESTAMP" />
+    <result column="mdStatus" property="mdStatus" jdbcType="VARCHAR" />
+
+    <association property="maintainFix" javaType="com.gs.bean.MaintainFix">
+      <id column="maintainId" property="maintainId"/>
+      <result column="maintainName" property="maintainName"/>
+      <result column="maintainHour" property="maintainHour" jdbcType="DOUBLE"/>
+      <result column="maintainMoney" property="maintainMoney" jdbcType="DOUBLE"/>
+      <result column="maintainOrFix" property="maintainOrFix"/>
+      <result column="maintainDes" property="maintainDes"/>
+          <association property="company" javaType="com.gs.bean.Company">
+            <id property="companyId" column="companyId"/>
+            <result property="companyName" column="companyName"/>
+          </association>
+    </association>
+
+    <association property="maintainRecord" javaType="com.gs.bean.MaintainRecord">
+      <id column="recordId" property="recordId"/>
+      <result column="checkinId" property="checkinId"/>
+      <result column="count" property="count"/>
+      <result column="startTime" property="startTime"/>
+      <result column="endTime" property="endTime"/>
+      <result column="actualEndTime" property="actualEndTime"/>
+      <result column="recordCreatedTime" property="recordCreatedTime"/>
+      <result column="pickupTime" property="pickupTime"/>
+      <result column="recordDes" property="recordDes"/>
+      <result column="recordStatus" property="recordStatus"/>
+      <result column="currentStatus" property="currentStatus"/>
+      <result column="ifConfirm" property="ifConfirm"/>
+
+      <association property="checkin" javaType="com.gs.bean.Checkin">
+        <id column="checkinId" property="checkinId"></id>
+        <result column="user_id" property="userId" jdbcType="VARCHAR"/>
+        <result column="userName" property="userName" jdbcType="VARCHAR"/>
+        <result column="userPhone" property="userPhone" jdbcType="VARCHAR"/>
+        <result column="brandId" property="brandId" jdbcType="VARCHAR"/>
+        <result column="colorId" property="colorId" jdbcType="VARCHAR"/>
+        <result column="modelId" property="modelId" jdbcType="VARCHAR"/>
+        <result column="plateId" property="plateId" jdbcType="VARCHAR"/>
+        <result column="carPlate" property="carPlate" jdbcType="VARCHAR"/>
+        <result column="arriveTime" property="arriveTime" jdbcType="TIMESTAMP"/>
+        <result column="carMileage" property="carMileage" jdbcType="DOUBLE"/>
+        <result column="carThings" property="carThings" jdbcType="VARCHAR"/>
+        <result column="intactDegrees" property="intactDegrees" jdbcType="VARCHAR"/>
+        <result column="userRequests" property="userRequests" jdbcType="VARCHAR"/>
+        <result column="maintainOrFix" property="maintainOrFix" jdbcType="VARCHAR"/>
+        <result column="companyId" property="companyId" jdbcType="VARCHAR"/>
+        <result column="nowOil" property="nowOil" jdbcType="DOUBLE"/>
+        <result column="ifClearCar" property="ifClearCar" jdbcType="VARCHAR"/>
+
+        <association property="brand" javaType="com.gs.bean.CarBrand">
+          <id property="brandId" column="brandId"/>
+          <result property="brandName" column="brandName"/>
+        </association>
+
+        <association property="color" javaType="com.gs.bean.CarColor">
+          <id property="colorId" column="colorId"/>
+          <result property="colorName" column="colorName"/>
+        </association>
+
+        <association property="plate" javaType="com.gs.bean.CarPlate">
+          <id property="plateId" column="plateId"/>
+          <result property="plateName" column="plateName"/>
+        </association>
+
+        <association property="model" javaType="com.gs.bean.CarModel">
+          <id property="modelId" column="modelId"/>
+          <result property="modelName" column="modelName"/>
+        </association>
+
+        <association property="user" javaType="com.gs.bean.User">
+          <id property="userId" column="userId"/>
+          <result property="userName" column="userName"/>
+          <result property="userEmail" column="userEmail"/>
+          <result property="userPhone" column="user_phone"/>
+        </association>
+
+        <association property="company" javaType="com.gs.bean.Company">
+          <id property="companyId" column="companyId"/>
+          <result property="companyName" column="companyName"/>
+          <result property="companyAddress" column="companyAddress"/>
+          <result property="companyTel" column="companyTel"/>
+          <result property="companyLogo" column="companyLogo"/>
+        </association>
+      </association>
+    </association>
+</resultMap>
+
+  <select id="queryByPager" resultMap="maintainDetailMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select md.*, mf.maintainId, mf.maintainName from t_maintain_detail md
+       LEFT JOIN t_maintain_fix mf on md.maintainItemId = mf.maintainId
+       where 1=1 and md.mdStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and ck.companyId = #{user.companyId}
+    </if>
+    order by md.mdCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(maintainDetailId) from t_maintain_detail where 1=1 and mdStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and ck.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="queryByDetailByPager" resultMap="maintainDetailMap">
+    <![CDATA[
+       select md.*, mf.maintainId, mf.maintainName, mf.maintainHour,
+        mf.maintainMoney, mf.maintainOrFix, mf.maintainDes from t_maintain_detail md
+       LEFT JOIN t_maintain_fix mf on md.maintainItemId = mf.maintainId
+       where md.maintainRecordId = #{maintainRecordId} and md.mdStatus = 'Y'
+       order by md.mdCreatedTime Desc
+    ]]>
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countByDetail" resultType="int">
+    <![CDATA[
+      select count(maintainDetailId) from t_maintain_detail where maintainRecordId = #{maintainRecordId} and mdStatus = 'Y'
+    ]]>
+  </select>
+
+  <select id="queryByFrontpage" resultMap="maintainDetailMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select md.*, mf.*, c.*, m.* from t_maintain_detail md,t_maintain_fix mf,t_maintain_record mr,t_checkin ck,t_car_model m, t_company c
+       where md.maintainItemId = mf.maintainId and md.maintainRecordId = mr.recordId
+		and mr.checkinId = ck.checkinId and ck.companyId = c.companyId
+		and ck.modelId = m.modelId and md.mdStatus = 'Y'
+		and mr.recordStatus = 'Y' and mr.currentStatus = '已收费'
+    ]]>
+    order by md.mdCreatedTime Desc
+    limit 0, 10
+  </select>
+
+  <select id="queryByRecordId" resultMap="maintainDetailMap">
+    <![CDATA[
+       select md.*, mf.maintainId, mf.maintainName, mf.maintainHour,
+        mf.maintainMoney, mf.maintainOrFix, mf.maintainDes from t_maintain_detail md
+       LEFT JOIN t_maintain_fix mf on md.maintainItemId = mf.maintainId
+       where md.maintainRecordId = #{maintainRecordId} and md.mdStatus = 'Y'
+       order by md.mdCreatedTime Desc
+    ]]>
+  </select>
+
+  <insert id="insert"  parameterType="MaintainDetail">
+    <![CDATA[
+			insert into t_maintain_detail(maintainDetailId, maintainRecordId, maintainItemId, maintainDiscount, mdCreatedTime, mdStatus)
+				values(uuid(), #{maintainRecordId}, #{maintainItemId}, #{maintainDiscount}, now(), 'Y')
+		]]>
+  </insert>
+
+  <update id="update" parameterType="MaintainDetail">
+    <![CDATA[
+			update t_maintain_detail set maintainDetailId = #{maintainDetailId}, maintainRecordId = #{maintainRecordId}, maintainItemId = #{maintainItemId}, maintainDiscount = #{maintainDiscount},
+				mdCreatedTime = now(), mdStatus = #{mdStatus} where maintainDetailId = #{maintainDetailId}
+		]]>
+  </update>
+
+  <!--冻结数据-->
+  <update id="inactive">
+    <![CDATA[
+         update t_maintain_detail set mdStatus = 'N' where maintainDetailId = #{id}
+        ]]>
+  </update>
+
+  <!--激活数据-->
+  <update id="active">
+    <![CDATA[
+        update t_maintain_detail set mdStatus = 'Y' where maintainDetailId = #{id}
+        ]]>
+  </update>
+
+  <select id="queryByOwner" resultMap="maintainDetailMap">
+    <![CDATA[
+       select md.*, mf.maintainId, mf.maintainName, mf.maintainHour,
+       mf.maintainMoney, mf.maintainOrFix, mf.maintainDes from t_maintain_detail md, t_maintain_fix mf, t_maintain_record mr, t_checkin ck
+       where md.maintainItemId = mf.maintainId and
+	   md.maintainRecordId=mr.recordId and mr.checkinId = ck.checkinId and md.maintainRecordId = #{recordId}
+	   and ck.userId =#{userId} and md.mdStatus = 'Y' order by md.mdCreatedTime Desc
+    ]]>
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countByOwner" resultType="int">
+    <![CDATA[
+      select count(maintainDetailId) from t_maintain_detail md,
+       t_maintain_record mr, t_checkin ck where
+        md.maintainRecordId=mr.recordId and mr.checkinId = ck.checkinId
+        and md.maintainRecordId = #{recordId} and md.mdStatus = 'Y' and ck.userId =#{userId}
+    ]]>
+  </select>
+
+</mapper>

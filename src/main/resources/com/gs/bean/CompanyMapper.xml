@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.CompanyDAO" >
+  <resultMap id="companyMap" type="company" >
+    <id column="companyId" property="companyId" jdbcType="VARCHAR" />
+    <result column="companyName" property="companyName" jdbcType="VARCHAR" />
+    <result column="companyAddress" property="companyAddress" jdbcType="VARCHAR" />
+    <result column="companyTel" property="companyTel" jdbcType="VARCHAR" />
+    <result column="companyPricipal" property="companyPricipal" jdbcType="VARCHAR" />
+    <result column="companyPricipalphone" property="companyPricipalphone" jdbcType="VARCHAR"/>
+    <result column="companyWebsite" property="companyWebsite" jdbcType="VARCHAR" />
+    <result column="companyLogo" property="companyLogo" jdbcType="VARCHAR" />
+    <result column="companyOpendate" property="companyOpendate" jdbcType="DATE" />
+    <result column="companySize" property="companySize" jdbcType="VARCHAR" />
+    <result column="companyLongitude" property="companyLongitude" jdbcType="DOUBLE" />
+    <result column="companyLatitude" property="companyLatitude" jdbcType="DOUBLE" />
+    <result column="companyDes" property="companyDes" jdbcType="VARCHAR" />
+    <result column="companyStatus" property="companyStatus" jdbcType="VARCHAR" />
+  </resultMap>
+
+  <!--查询所有公司-->
+  <select id="queryAll" resultMap="companyMap" parameterType="com.gs.bean.User">
+    <![CDATA[
+    select * from t_company tc where 1=1 and tc.companyStatus='Y'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and tc.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!--分页查询所有公司-->
+  <select id="queryByPager" resultMap="companyMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select * from t_company tc  where 1=1 and tc.companyStatus = 'Y'
+     ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and tc.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <!--分页查询公司总数-->
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(companyId) from t_company tc where 1=1 and tc.companyStatus = 'Y'
+    ]]>
+    <if test="companyId !='' and companyId != null" >
+      and tc.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!--添加公司-->
+  <insert id="insert"  parameterType="company">
+    <![CDATA[
+			INSERT into t_company(companyId, companyName, companyAddress, companyTel,companyPricipal,companyPricipalphone,companyWebsite,companyLogo,companyOpendate,companySize,companyLongitude,companyLatitude,companyDes,companyStatus)
+			values(#{companyId}, #{companyName}, #{companyAddress}, #{companyTel}, #{companyPricipal}, #{companyPricipalphone}, #{companyWebsite}, #{companyLogo}, #{companyOpendate}, #{companySize}, #{companyLongitude}, #{companyLatitude}, #{companyDes},'Y')
+     ]]>
+  </insert>
+
+  <!-- 根据id查询公司的基本信息 -->
+  <select id="queryById" resultMap="companyMap" parameterType="String">
+    <![CDATA[
+      select * from t_company tc where 1=1 and tc.companyId = #{id}
+    ]]>
+  </select>
+
+  <!--修改公司-->
+  <update id="update" parameterType="company">
+    <![CDATA[
+			update t_company set companyName = #{companyName},companyAddress = #{companyAddress},companyTel = #{companyTel},companyPricipal = #{companyPricipal},companyPricipalphone = #{companyPricipalphone},companyWebsite = #{companyWebsite},companyLogo = #{companyLogo},companyOpendate = #{companyOpendate},companySize = #{companySize},companyLongitude = #{companyLongitude},companyLatitude = #{companyLatitude},companyDes = #{companyDes},companyStatus = 'Y' where companyId = #{companyId}
+     ]]>
+  </update>
+
+  <!-- 分页查询禁用 -->
+  <select id="queryByPagerDisable" resultMap="companyMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select * from t_company tc  where tc.companyStatus = 'N'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and tc.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <!-- 分页查询禁用个数 -->
+  <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(tc.companyId) from t_company tc where tc.companyStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and tc.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!--  查询此公司名称是否已存在 -->
+  <select id="querycompanyName" resultType="int">
+    <![CDATA[
+      select count(companyName) from t_company where companyName = #{companyName}
+    ]]>
+    <if test="companyId != null and companyId != ''">
+      and companyId != #{companyId}
+    </if>
+  </select>
+
+  <!--  查询此公司URL是否有已存在 -->
+  <select id="querycompanyWebsite" resultType="int">
+    <![CDATA[
+      select count(companyWebsite) from t_company where companyWebsite = #{companyWebsite}
+    ]]>
+    <if test="companyId != null and companyId != ''">
+      and companyId != #{companyId}
+    </if>
+  </select>
+
+  <!--  查询此公司负责人联系电话是否已存在 -->
+  <select id="querycompanyPricipalphone" resultType="int">
+    <![CDATA[
+      select count(companyPricipalphone) from t_company where companyPricipalphone = #{companyPricipalphone}
+    ]]>
+    <if test="companyId != null and companyId != ''">
+      and companyId != #{companyId}
+    </if>
+  </select>
+
+  <!--  入住公司验证负责人联系电话是否已经存在 -->
+  <select id="queryPhone"  resultMap="companyMap" >
+    <![CDATA[
+      select * from t_company where companyPricipalphone = #{companyPricipalphone};
+    ]]>
+  </select>
+
+  <!--冻结数据-->
+  <update id="inactive" keyProperty="companyId" parameterType="company">
+    <![CDATA[
+         update t_company set companyStatus = 'N' where companyId = #{companyId}
+        ]]>
+  </update>
+
+  <!--激活数据-->
+  <update id="active" keyProperty="companyId" parameterType="company">
+    <![CDATA[
+        update t_company set companyStatus = 'Y' where companyId = #{companyId}
+        ]]>
+  </update>
+
+  <!-- Logo -->
+  <update id="updLogo" >
+    <![CDATA[
+      update  t_company set companyLogo=#{companyLogo} where companyId = #{companyId}
+    ]]>
+  </update>
+
+
+  <!-- 分页模糊查询 -->
+  <select id="blurredQuery" resultMap="companyMap" >
+    <![CDATA[
+        select tc.* from t_company tc  where 1=1
+      ]]>
+    <if test="pager.user.companyId != '' and pager.user.companyId !=null">
+      and tc.companyId = #{pager.user.companyId}
+    </if>
+    and(
+    <if test="company.companyName != '' and company.companyName != null">
+      tc.companyName like '%${company.companyName}%'
+    </if>
+    <if test="company.companyName != '' and company.companyName != null and company.companyPricipal !='' and company.companyPricipal !=null">
+      or
+    </if>
+    <if test="company.companyPricipal !='' and company.companyPricipal !=null">
+     tc.companyPricipal like '%${company.companyPricipal}%'
+    </if>
+    )
+      limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <!-- 分页模糊查询个数 -->
+  <select id="countByBlurred" resultType="int">
+    <![CDATA[
+      select count(*) from t_company tc  where 1=1
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and tc.companyId = #{pager.user.companyId}
+    </if>
+    and(
+    <if test="company.companyName != '' and company.companyName != null">
+      tc.companyName like '%${company.companyName}%'
+    </if>
+    <if test="company.companyName != '' and company.companyName != null and company.companyPricipal !='' and company.companyPricipal !=null">
+      or
+    </if>
+    <if test="company.companyPricipal !='' and company.companyPricipal !=null">
+      tc.companyPricipal like '%${company.companyPricipal}%'
+    </if>
+    )
+  </select>
+
+  <select id="queryByCompanyInfo" resultMap="companyMap">
+    <![CDATA[
+      select cp.companyLogo,cp.companyName,cp.companyPricipal,cp.companyTel,cp.companyAddress,cp.companySize
+      from auto_platform.t_company cp
+    ]]>
+  </select>
+</mapper>

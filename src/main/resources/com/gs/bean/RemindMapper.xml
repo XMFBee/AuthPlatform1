@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.RemindDAO">
+    <resultMap id="RemindMap" type="com.gs.bean.Remind">
+        <id column="remindId" property="remindId" jdbcType="VARCHAR"/>
+        <result column="remindDes" property="remindDes"/>
+        <result column="remindUser" property="remindUser" jdbcType="VARCHAR"/>
+
+        <association property="user" javaType="com.gs.bean.User">
+            <id property="userId" column="userId"/>
+            <id property="userName" column="userName"/>
+        </association>
+    </resultMap>
+
+    <!--添加提醒-->
+    <insert id="addRemind" useGeneratedKeys="true" keyProperty="id" parameterType="Remind">
+        <![CDATA[
+          INSERT INTO auto_platform.t_remind(remindId,remindDes,remindUser)
+          VALUES (uuid(),#{remindDes},#{remindUser})
+        ]]>
+    </insert>
+
+    <!--删除提醒-->
+    <delete id="deleteRemind">
+        <![CDATA[
+          DELETE FROM auto_platform.t_remind WHERE remindId=#{remindId}
+        ]]>
+    </delete>
+
+    <!--更新提醒-->
+    <update id="updateRemind">
+        <![CDATA[
+          UPDATE auto_platform.t_remind SET remindDes=#{remindDes} WHERE remindId=#{remindId}
+        ]]>
+    </update>
+    <!--查询提醒-->
+
+    <select id="selectRemind" resultMap="RemindMap">
+        <![CDATA[
+          SELECT  r.*,u.userId,u.userName FROM auto_platform.t_remind r
+          left join auto_platform.t_user u on u.userId=r.remindUser
+        ]]>
+        limit 0,5
+    </select>
+
+</mapper>

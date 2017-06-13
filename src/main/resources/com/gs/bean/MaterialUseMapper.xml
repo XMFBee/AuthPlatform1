@@ -1,0 +1,587 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.MaterialUseDAO" >
+  <resultMap id="BaseResultMap" type="com.gs.bean.MaterialUse" >
+    <id column="materialUseId" property="materialUseId" jdbcType="VARCHAR" />
+    <result column="matainRecordId" property="matainRecordId" jdbcType="VARCHAR" />
+      <result column="count" property="count"/>
+    <result column="accId" property="accId" jdbcType="VARCHAR" />
+    <result column="accCount" property="accCount" jdbcType="INTEGER" />
+    <result column="muCreatedTime" property="muCreatedTime" jdbcType="TIMESTAMP" />
+    <result column="muUseDate" property="muUseDate" jdbcType="TIMESTAMP" />
+
+      <result column="accIdle" property="accIdle"/>
+  </resultMap>
+  
+  <resultMap id="baseRecordView" type="com.gs.bean.view.RecordBaseView">
+    <id property="recordId" column="recordId"></id>
+    <result column="needHours" property="hours"></result>
+    <result column="carplate" property="carplate"></result>
+    <result column="carmodel" property="carmodel"></result>
+    <association resultMap="com.gs.dao.MaintainRecordDAO.MaintainRecordMap" property="record" />
+    <association javaType="workInfo" property="workInfo" >
+        <id column="workId" property="workId" jdbcType="VARCHAR" />
+        <association property="user" javaType="user">
+            <id column="userId" property="userId"></id>
+            <result column="userName" jdbcType="VARCHAR" property="userName" />
+        </association>
+    </association>
+  </resultMap>
+
+
+  <resultMap id="materialTempView" type="com.gs.bean.view.MaterialURTemp">
+        <result column="materialUseId" property="materialUseId" jdbcType="VARCHAR" />
+        <result column="matainRecordId" property="matainRecordId" jdbcType="VARCHAR" />
+        <result column="accId" property="accId" jdbcType="VARCHAR" />
+        <result column="accCount" property="accCount" jdbcType="INTEGER" />
+        <result column="muCreatedTime" property="muCreatedTime" jdbcType="TIMESTAMP" />
+        <result column="muUseDate" property="muUseDate" jdbcType="TIMESTAMP" />
+        <result column="flag" property="flag" jdbcType="VARCHAR" />
+        <association property="record" javaType="maintainRecord" >
+            <id property="recordId" column="recordId" />
+            <association property="checkin" javaType="checkin">
+                <id property="checkinId" column="checkinId" />
+                <result property="carPlate" column="carPlate"/>
+                <association property="plate" javaType="carPlate">
+                    <id property="plateId" column="plateId"></id>
+                    <id property="plateName" column="plateName"></id>
+                </association>
+            </association>
+        </association>
+        <association property="accessories" javaType="accessories">
+            <id property="accId" column="accId"/>
+            <result property="accName" column="accName" />
+        </association>
+        <association property="workInfo" javaType="workInfo">
+            <association property="user" javaType="user">
+                <id property="userId" column="userId" />
+                <result property="userName" column="userName" />
+            </association>
+        </association>
+    </resultMap>
+
+  <resultMap id="detailFixs" type="com.gs.bean.view.DetailTemp">
+      <id property="maintainDetailId" column="maintainDetailId"/>
+      <result property="maintainDiscount" column="maintainDiscount"></result>
+      <result property="mdcreatedTime" column="mdcreatedTime"></result>
+      <association property="maintainFix" resultMap="com.gs.dao.MaintainFixDAO.MaintainFixMap"/>
+      <association property="record" javaType="maintainRecord">
+          <id column="recordId" property="recordId"></id>
+      </association>
+  </resultMap>
+
+  <resultMap id="mterialFlowView" type="com.gs.bean.view.MaterialURTemp">
+      <id property="processInstanceId" column="PROC_INST_ID_"  />
+      <result property="taskId" column="taskId" />
+      <association property="workInfo" javaType="WorkInfo" >
+          <association property="user" javaType="user" >
+              <result column="userName" property="userName"></result>
+          </association>
+      </association>
+      <association property="taskTemp" javaType="org.activiti.engine.impl.persistence.entity.HistoricTaskInstanceEntity">
+          <id property="id" column="taskId" jdbcType="VARCHAR" />
+          <result property="startTime" column="taskSTART_TIME_"  />
+          <result property="endTime" column="taskEND_TIME_" jdbcType="TIMESTAMP" />
+      </association>
+      <association property="processInstance" javaType="org.activiti.engine.impl.persistence.entity.HistoricProcessInstanceEntity">
+          <id property="processInstanceId" column="PROC_INST_ID_"  />
+          <result property="startTime" column="START_TIME_"  />
+          <result property="endTime" column="END_TIME_"  />
+      </association>
+
+  </resultMap>
+
+    <insert id="insert" parameterType="materialUse">
+        insert into t_material_use
+        values( #{materialUseId}, #{matainRecordId}, #{accId}, #{accCount}, #{muCreatedTime}, #{muUseDate});
+    </insert>
+
+    <select id="queryByPager">
+        select mu.* ,acc.accName from t_material_use mu left join t_accessories acc on mu.accId = acc.accId
+         left join t_company comp on acc.companyId = comp.companyId
+        where comp.companyId  = #{companyId} order by mu.muCreatedTime desc
+      </select>
+
+    <select id ="materialByPager" resultMap="materialTempView">
+        select
+          tuser.userId,
+          tuser.userName,
+          acc.accId,
+          acc.accName,
+          record.recordId,
+          checkin.checkinId,
+          checkin.carplate,
+          carp.plateName,
+          mater.*
+        from
+            (select *,'U' as 'flag' from t_material_use
+                union all
+                select  *,'R' as 'flag' from t_material_return) mater
+        left join t_work_info workinfo on  mater.matainRecordId= workinfo.recordId
+        left join t_accessories acc on acc.accId = mater.accId
+        left join t_user tuser on workinfo.userId = tuser.userId
+        left join t_maintain_record record on mater.matainRecordId = record.recordId
+        left join t_checkin checkin on record.checkinId = checkin.checkinId
+        left join t_car_plate carp on carp.plateId = checkin.plateId
+        <where>
+            <if test="userId!=null">
+                tuser.userId = #{userId}
+            </if>
+        </where>
+        ORDER BY mater.muUseDate desc
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <select id = "countMaterials" resultType="int">
+        select count(materialUseId) from
+            ( select *,'isuse' as 'flag' from t_material_use
+			  union all
+			  select  *,'isReturn' as 'flag' from t_material_return) mater
+        left join t_work_info workinfo on  mater.matainRecordId= workinfo.recordId
+        <where>
+            <if test="userId!=null">
+              workinfo.userId = #{userId}
+            </if>
+        </where>
+    </select>
+
+    <!-- 审核流程的人流程页面 -->
+    <select id="queryMaterialFlowingbyPager" resultMap="mterialFlowView" parameterType="hashMap">
+       select
+        hipro.*,
+        rutask.ID_ as "taskId"
+       from act_ru_execution ruexe1
+        LEFT JOIN act_ru_task rutask on  ruexe1.PROC_INST_ID_ = rutask.PROC_INST_ID_
+        left join act_ru_identitylink ruiden1 on ruiden1.TASK_ID_ = rutask.ID_
+        left join act_hi_procinst hipro on ruexe1.PROC_INST_ID_ = hipro.PROC_INST_ID_
+         where ruiden1.TYPE_ = 'candidate'
+            and ruexe1.ACT_ID_ = #{curActId}
+            and ruexe1.PROC_INST_ID_ in (		/*		-- 最外层, 这层过滤出库管可以审核的流程*/
+                select ruexe.PROC_INST_ID_ from act_re_procdef reprodep		/*-- 第一层嵌套,这层查询出所属公司的申请流程*/
+                    left join act_ru_execution ruexe on reprodep.ID_ = ruexe.PROC_DEF_ID_
+                    left join act_ru_identitylink ruiden on ruiden.PROC_INST_ID_ = ruexe.PROC_INST_ID_
+                    left join act_ru_variable rvar on ruexe.PROC_INST_ID_ = rvar.PROC_INST_ID_
+                    where reprodep.KEY_ = #{flowName}
+                        and ruiden.TYPE_ = "starter"
+                        and ruiden.USER_ID_ in (
+                            select userId from t_user
+                            <where>
+                            <if test="user.companyId != null and user.companyId != ''">
+                                 companyId = #{user.companyId}
+                            </if>
+                            </where>
+        /*-- 第二层嵌套, 这层查询出所属公司的员工ID,流程发起人是公司的员工*/
+                        )
+                        and rvar.name_ = 'accCount'
+
+        <choose>
+            <when test="isUse== true">
+                <![CDATA[
+                  and rvar.text_  > 0
+                ]]>
+            </when>
+            <when test="isUse == false">
+                <![CDATA[
+                 and rvar.text_  < 0
+                ]]>
+            </when>
+        </choose>
+            ) order by hipro.start_time_ desc
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+    <select id="countMaterialFlowing" parameterType="hashMap" resultType="int">
+        select count(DISTINCT ruexe1.PROC_INST_ID_ ) from act_ru_execution ruexe1
+        LEFT JOIN act_ru_task rutask on  ruexe1.PROC_INST_ID_ = rutask.PROC_INST_ID_
+        left join act_ru_identitylink ruiden1 on ruiden1.TASK_ID_ = rutask.ID_
+        where ruiden1.TYPE_ = 'candidate'
+        and ruiden1.GROUP_ID_ = #{roleId}
+        and ruexe1.PROC_INST_ID_ in (				/*-- 最外层, 这层过滤出库管可以审核的流程*/
+            select ruexe.PROC_INST_ID_ from act_re_procdef reprodep		/*-- 第一层嵌套,这层查询出所属公司的申请流程*/
+                    left join act_ru_execution ruexe on reprodep.ID_ = ruexe.PROC_DEF_ID_
+                    left join act_ru_identitylink ruiden on ruiden.PROC_INST_ID_ = ruexe.PROC_INST_ID_
+                    left join act_ru_variable rvar on ruexe.PROC_INST_ID_ = rvar.PROC_INST_ID_
+                    where reprodep.KEY_ = #{flowName}
+                        and ruiden.TYPE_ = "starter"
+                        and ruiden.USER_ID_ in (
+                            select userId from t_user
+                            <where>
+                                <if test="user.companyId != null and user.companyId != ''">
+                                    companyId = #{user.companyId}
+                                </if>
+                            </where>
+                        )
+                        and rvar.name_ = 'accCount'
+        <choose>
+            <when test="isUse== true">
+                <![CDATA[
+                  and rvar.text_  > 0
+                ]]>
+            </when>
+            <when test="isUse == false">
+                <![CDATA[
+                 and rvar.text_  < 0
+                ]]>
+            </when>
+        </choose>
+        )
+    </select>
+
+    <select id = "queryHistoryFlowingbyPager" resultMap="mterialFlowView" parameterType="hashMap">
+        select
+            hipro.* ,
+            hitask.id_ as "taskId",
+            tuser.userName
+        from act_re_procdef repro
+            left join act_hi_procinst hipro on repro.ID_ = hipro.proc_def_id_
+            left join (select ID_, PROC_INST_ID_ , max(TASK_DEF_KEY_) as 'TASK_DEF_KEY_', name_, ASSIGNEE_  from act_hi_taskinst hitask group by PROC_INST_ID_ , TASK_DEF_KEY_)as hitask on hitask.PROC_INST_ID_ = hipro.ID_
+            left join t_user tuser on hitask.assignee_ = tuser.userId
+            where hipro.start_User_ID_ in (
+                (select tuser.userId from t_company company left join t_user tuser on company.companyId = tuser.companyId
+                    <where>
+                        <if test="user.companyId != null and user.companyId != ''">
+                            company.companyId = #{user.companyId}
+                        </if>
+                    </where>
+                )
+            ) and repro.key_ = #{flowName}
+            and hitask.TASK_DEF_KEY_ = #{taskKey}
+        and hipro.end_time_ is not null
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+    <select id="countHistoryFlowing"  parameterType="hashMap" resultType="int">
+      select count(DISTINCT hipro.id_) from act_re_procdef repro
+            left join act_hi_procinst hipro on repro.ID_ = hipro.proc_def_id_
+            where hipro.start_User_ID_ in (
+                (select tuser.userId from t_company company left join t_user tuser on company.companyId = tuser.companyId
+                    <where>
+                        <if test="user.companyId != null and user.companyId != ''">
+                            company.companyId = #{user.companyId}
+                        </if>
+                    </where>
+                )
+            ) and repro.key_ = #{flowName}
+      and hipro.end_time_ is not null
+    </select>
+
+    <select id = "queryUserFlowingByPager" resultMap="mterialFlowView" parameterType="hashMap" >
+        <!--select
+        tuser.userName,
+        hipro.PROC_INST_ID_,
+        hitask.id_  as "taskId",
+        hitask.START_TIME_ as "taskSTART_TIME_",
+        hitask.END_TIME_ as "taskEND_TIME_"
+        from act_re_procdef repro
+        left join act_ru_execution ruexe on repro.ID_ =  ruexe.PROC_DEF_ID_
+        left join act_hi_procinst hipro on ruexe.PROC_INST_ID_ = hipro.PROC_INST_ID_
+        left join (select PROC_INST_ID_,id_  , TASK_DEF_KEY_, ASSIGNEE_, max(START_TIME_) as 'START_TIME_', END_TIME_ from act_hi_taskinst  group by PROC_INST_ID_, TASK_DEF_KEY_) hitask
+                    on hipro.ID_ = hitask.PROC_INST_ID_
+        left join t_user tuser on tuser.userId = hitask.ASSIGNEE_
+        left join t_company comp on tuser.companyId = comp.companyId
+        where hipro.END_TIME_ is null
+        and repro.KEY_ = #{flowName}
+        <if test="user.companyId != '' and user.companyId != null" >
+            and comp.companyId = #{user.companyId}
+            <if test="user.userId != '' and user.userId != null" >
+                and hipro.START_USER_ID_ = #{user.userId}
+            </if>
+        </if>
+        limit #{pager.beginIndex}, #{pager.pageSize}-->
+
+        select
+            tuser.userName,
+            hipro.PROC_INST_ID_,
+            hitask.id_  as "taskId",
+            hitask.START_TIME_ as "taskSTART_TIME_",
+            hitask.END_TIME_ as "taskEND_TIME_"
+            from act_hi_procinst hipro
+        left join act_re_procdef repro on hipro.PROC_DEF_ID_ = repro.ID_
+        left join act_hi_taskinst hitask on hipro.PROC_INST_ID_ = hitask.PROC_INST_ID_
+        left join t_user tuser on tuser.userId = hipro.START_USER_ID_
+        left join t_company comp on tuser.companyId = comp.companyId
+        where hipro.END_TIME_ is null
+            and hitask.END_TIME_ is null
+            and hipro.START_USER_ID_ = #{user.userId}
+            and repro.KEY_ = #{flowName}
+            and comp.companyId = #{user.companyId}
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <select id="countUserFlowing" parameterType="hashMap" resultType="int">
+        select count(DISTINCT ruexe.PROC_INST_ID_) from act_re_procdef repro
+        left join act_ru_execution ruexe on repro.ID_ =  ruexe.PROC_DEF_ID_
+        left join act_hi_procinst hipro on ruexe.PROC_INST_ID_ = hipro.PROC_INST_ID_
+        where repro.KEY_ = #{flowName}
+        <if test="user.userId != null and user.userId != '' " >
+            and hipro.START_USER_ID_ = #{user.userId}
+        </if>
+
+    </select>
+
+  <!-- 其它的 不与这个表相关的-->
+    <select id="queryCurRecordsByPager" resultMap="baseRecordView">
+  	<!--select record.recordCreatedTime,
+				(select sum(fix.maintainHour) from t_maintain_detail detail
+					Left JOIN t_maintain_fix fix 	on detail.maintainItemId = fix.maintainId
+					where detail.maintainRecordId = record.recordId) as 'needHours',
+      record.recordId,
+      checkin.carPlate as 'carplate' ,
+      model.modelName 'carmodel'
+      <if test="hasEmp!=''" >
+      , euser.userName
+      </if>
+	from t_checkin checkin
+	left JOIN t_maintain_record record on checkin.checkinId = record.checkinId
+	left JOIN t_company com on com.companyId = checkin.companyId
+	left join t_car_model model on checkin.modelId = model.modelId
+        <if test="hasEmp!=''" >
+        left join t_work_info workinfo on workinfo.recordId = record.recordId
+        left join t_user euser on euser.userId = workinfo.userId
+        </if>
+	where record.recordStatus='Y'
+        <if test="companyId != null">
+            and com.companyId = #{companyId}
+        </if>
+        and record.recordId
+        <choose>
+            <when test="hasEmp!=''">in</when>
+            <otherwise>not in</otherwise>
+        </choose>
+         (select workinfo.recordId from t_work_info workinfo	) order by  record.recordCreatedTime desc
+	 limit #{pager.beginIndex}, #{pager.pageSize}-->
+
+
+        select record.recordCreatedTime,
+        (select sum(fix.maintainHour) from t_maintain_detail detail
+        Left JOIN t_maintain_fix fix 	on detail.maintainItemId = fix.maintainId
+        where detail.maintainRecordId = record.recordId) as 'needHours',
+        record.recordId,
+        checkin.carPlate as 'carplate' ,
+        model.modelName 'carmodel',
+        plate.plateName
+        <if test="hasEmp!=''" >
+            , euser.userName
+        </if>
+        from  t_work_info workinfo
+        left JOIN t_maintain_record record on workinfo.recordId = record.recordId
+        Left JOIN t_checkin checkin on checkin.checkinId = record.checkinId
+        left JOIN t_company com on com.companyId = checkin.companyId
+        left join t_car_model model on checkin.modelId = model.modelId
+        Left JOIN  t_car_plate plate on checkin.plateId = plate.plateId
+        <if test="hasEmp!=''" >
+            left join t_user euser on euser.userId = workinfo.userId
+        </if>
+        where record.recordStatus='Y'
+        <choose>
+            <when test="hasEmp!=null and  hasEmp != ''">
+              and (workinfo.userId is not null or workinfo.userId != '')
+            </when>
+            <otherwise>
+                and (workinfo.userId is null or workinfo.userId = '')
+            </otherwise>
+        </choose>
+        and com.companyId = #{companyId}
+        order by  record.recordCreatedTime desc
+        limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+    <select id="countNoUseRecord" resultType="int">
+       select count(record.recordId)
+        from t_work_info workinfo
+        left JOIN t_maintain_record record on workinfo.recordId = record.recordId
+        left join t_checkin checkin  on  checkin.checkinId = record.checkinId
+        where
+        record.recordStatus='Y'
+        <if test="companyId != null ">
+            and checkin.companyId = #{companyId}
+        </if>
+        <choose>
+            <when test="hasEmp!=null and  hasEmp != ''">
+                and (workinfo.userId is not null or workinfo.userId != '')
+            </when>
+            <otherwise>
+                and (workinfo.userId is null or workinfo.userId = '')
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="recordAccByPager">
+        select
+		mf.maintainName '保养维修名',
+		mf.maintainOrFix '保养维修标识',
+		mfa.accCount
+     from t_work_info wi left join
+        t_maintain_detail md on wi.recordId = md.maintainRecordId
+        left join t_maintain_fix mf on md.maintainItemId = mf.maintainId
+      left join t_maintain_fix_acc mfa on mf.maintainId = mfa.maintainId
+      left join t_accessories a on mfa.accId = a.accId
+      where mf.companyId = a.companyId and md.maintainRecordId = #{recordId}
+      limit #{pager.beginIndex}, #{pager.pageSize}
+
+    </select>
+
+    <select id="companyEmps" resultType="user"> /* 后期可能会加上员工角色 */
+      select t_user.userId , t_user.userName from t_user left join t_company on t_company.companyId = t_user.companyId
+      where t_company.companyId = #{companyId};
+    </select>
+
+  <!--  <insert id="insertWorkInfo" parameterType="com.gs.bean.WorkInfo">
+        INSERT INTO t_work_info
+        (workId,recordId, userId, workAssignTime, workCreatedTime,workStatus)
+        VALUES
+        (uuid(),#{recordId},#{userId},#{workAssignTime},#{workCreatedTime},'Y')
+    </insert>-->
+
+    <update id="insertWorkInfo" parameterType="com.gs.bean.WorkInfo">
+        update t_work_info  set userId = #{userId} , workAssignTime = #{workAssignTime} where recordId = #{recordId}
+    </update>
+    
+    <select id="userWorksByPager" resultMap="com.gs.dao.WorkInfoDAO.BaseResultMap">
+        select
+            workinfo.workId ,
+            workinfo.workStatus,
+            record.recordId ,
+            color.colorRGB ,
+            color.colorName ,
+            checkin.carplate,
+            model.modelName ,
+            brand.brandName ,
+            plate.plateName ,
+            checkin.userRequests ,
+            workinfo.workAssignTime
+        from
+        t_work_info workinfo
+        left JOIN t_maintain_record record on workinfo.recordId = record.recordId
+        left JOIN t_checkin checkin on record.checkinId = checkin.checkinId
+        left join t_car_model model on checkin.modelId = model.modelId
+        left join t_car_color color on checkin.colorId = color.colorId
+        left join t_car_brand brand on checkin.brandId = brand.brandId
+        left join t_car_plate plate on checkin.plateId = plate.plateId
+        <where>
+            1 = 1
+            <if test="user.companyId != null and user.companyId != ''">
+              and workinfo.userId = #{user.userId}
+            </if>
+            <if test="status!=null">
+                and workinfo.workStatus = #{status}
+            </if>
+        </where>
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <select id="countUserWorks" resultType="int" >
+        select
+        count(workinfo.workId)
+        from
+        t_work_info workinfo
+        <where>
+            1 = 1
+            <if test="user.companyId != null and user.companyId != '' ">
+                and workinfo.userId = #{user.userId}
+            </if>
+            <if test="status!=null">
+                and workinfo.workStatus = #{status}
+            </if>
+        </where>
+    </select>
+
+    <select id = "queryWorkInfoByRecordId" resultMap="com.gs.dao.WorkInfoDAO.BaseResultMap">
+        select * from t_work_info workinfo left join t_maintain_record record on workinfo.recordId = record.recordId
+        where record.recordId = #{recordId} and ( workinfo.userId is not null or workinfo.userId != "" )
+    </select>
+
+    <select id="queryDetailsByRecordId" resultMap = "detailFixs">
+        select record.recordId, detail.maintainDetailId,detail.maintainDiscount,fix.* from t_maintain_record record
+        left join t_maintain_detail detail on record.recordId = detail.maintainRecordId
+        left join t_maintain_fix fix on detail.maintainItemId = fix.maintainId
+        where record.recordId = #{recordId} and fix.companyId = #{companyId}
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+    <select id="countDetailsByRecordId" resultType="int">
+        select count(detail.maintainDetailId) from t_maintain_record record
+        left join t_maintain_detail detail on record.recordId = detail.maintainRecordId
+        left join t_maintain_fix fix on detail.maintainItemId = fix.maintainId
+        where record.recordId = #{recordId} and fix.companyId = #{companyId}
+    </select>
+
+    <select id = "accQueryById" resultType="Accessories">
+        select * from t_accessories where accId = #{accId}
+    </select>
+
+    <update id = "updWorkInfoUser"  >
+        update t_work_info workinfo set userid= #{userId} where workinfo.recordId = #{recordId}
+    </update>
+
+    <update id = "updRunProInstStartUser">
+        update act_re_procdef redef
+        left join act_ru_execution ruexe on redef.ID_ = ruexe.proc_def_id_
+        left join act_hi_procinst hipro  on ruexe.proc_inst_id_ = hipro.proc_inst_id_
+        left join act_hi_identitylink hiden  on hipro.proc_inst_id_ = hiden.proc_inst_id_
+        left join act_ru_identitylink ruiden on ruiden.proc_inst_id_ = hiden.proc_inst_id_
+        left join act_ru_variable ruvar on ruvar.PROC_INST_ID_ = ruexe.PROC_INST_ID_
+        set hipro.START_USER_ID_ = #{newUserId}, hiden.USER_ID_= #{newUserId}, ruiden.USER_ID_=#{newUserId}
+        where
+        redef.key_ = #{flowName}
+        and ruvar.name_ = "recordId" and ruvar.text_ =#{recordId}
+    </update>
+
+    <select id = "accQueryAll" resultType ="Accessories" parameterType="hashMap" >
+            <![CDATA[
+            select * FROM auto_platform.t_accessories ac
+            left join t_accessories_type acType on ac.accTypeId = acType.accTypeId
+            where 1=1 and ac.accStatus = 'Y'
+        ]]>
+            <if test="companyId !=null and companyId != '' ">
+                and acType.companyId = #{companyId}
+            </if>
+    </select>
+
+    <select id = "countAccQueryAll" resultType ="int" parameterType="hashMap" >
+        <![CDATA[
+            select * FROM auto_platform.t_accessories ac where 1=1 and ac.accStatus = 'Y'
+        ]]>
+        <if test="companyId !=null and companyId != ''">
+            and ac.companyId = #{companyId}
+        </if>
+    </select>
+
+
+    <select id = "queryUserIdbyRecordId4workInfo" resultType="string">
+        select userId from t_work_info workInfo where recordId = #{recordId}
+    </select>
+
+
+    <select id = "queryNearCompanys" parameterType="hashMap" resultType="company">
+        select * from t_company comp
+        where comp.companyStatus = "Y"
+        <![CDATA[ and comp.companyLongitude >  ]]> #{minLng}
+        <![CDATA[ and comp.companyLongitude <  ]]> #{maxLng}
+        <![CDATA[ and comp.companyLatitude  >  ]]> #{minLat}
+        <![CDATA[ and comp.companyLatitude  <  ]]> #{maxLat}
+    </select>
+
+    <!--库存领料统计-->
+    <select id="queryByCondition" resultMap="BaseResultMap">
+        <![CDATA[
+        select SUM(mu.accCount) as count,a.accIdle as accIdle, mu.muCreatedTime from t_accessories a, t_accessories_type t,t_company c, t_material_use mu
+              where a.accTypeId = t.accTypeId and a.companyId = c.companyId and a.accStatus = 'Y' and mu.accId = a.accId  and
+            c.companyId = #{companyId} and t.accTypeId = #{accTypeId} and mu.muCreatedTime >= #{start} and mu.muCreatedTime <= #{end}
+        ]]>
+        <if test="type =='year'">
+            group by date_format(mu.muCreatedTime, '%Y') ORDER BY mu.muCreatedTime ASC;
+        </if>
+        <if test="type =='quarter'">
+            group by concat(date_format(mu.muCreatedTime, '%Y'),FLOOR((date_format(mu.muCreatedTime, '%m')+2)/3)) ORDER BY mu.muCreatedTime ASC;
+        </if>
+        <if test="type =='month'">
+            group by date_format(mu.muCreatedTime, '%y-%m') ORDER BY mu.muCreatedTime ASC;
+        </if>
+        <if test="type =='week'">
+            group by date_format(mu.muCreatedTime, '%y-%m') ORDER BY mu.muCreatedTime ASC;
+        </if>
+        <if test="type =='day'">
+            group by date(mu.muCreatedTime) ORDER BY mu.muCreatedTime ASC;
+        </if>
+    </select>
+
+
+</mapper>

@@ -1,0 +1,30 @@
+.head {
+    width:90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.subtitle {
+    height:50px;
+    padding-left:20px;
+    background-color:#f0f0f0;
+}
+
+.subtitle>h3 {
+    line-height: 50px;
+    margin: 0px;
+}
+
+.title_icon:before {
+    content: " ";
+    float: left;
+    height: 20px;
+    width: 5px;
+    margin-top: 3px;
+    margin-right: 10px;
+    background-color: lightseagreen;
+}
+
+.modal-header .title {
+    float:left
+}

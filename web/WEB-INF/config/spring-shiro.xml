@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
+
+    <!--内存限制缓存管理器-->
+	<bean id="cacheManager" class="org.apache.shiro.cache.MemoryConstrainedCacheManager" />
+
+    <!--通配符解析器-->
+	<bean id="permissionResolver" class="org.apache.shiro.authz.permission.WildcardPermissionResolver"/>
+
+    <!--模块化授权管理器-->
+    <bean id="authorizer" class="org.apache.shiro.authz.ModularRealmAuthorizer">
+        <property name="permissionResolver" ref="permissionResolver" />
+    </bean>
+
+    <!--配置模块化身份验证-->
+    <bean id="authenticator" class="com.gs.authenticator.MyModularRealmAuthenticator">
+        <property name="authenticationStrategy">
+            <bean class="org.apache.shiro.authc.pam.FirstSuccessfulStrategy" />
+        </property>
+    </bean>
+
+    <!-- 配置user角色自定义域 -->
+    <bean id="userRealm" class="com.gs.realm.UserRealm"/>
+
+    <!--配置默认的Web安全管理器-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!--模块化权限授权器-->
+        <property name="authorizer" ref="authorizer"/>
+        <property name="authenticator" ref="authenticator" />
+        <!--配置多个域-->
+        <property name="realms">
+            <list>
+                <ref bean="userRealm" />
+            </list>
+        </property>
+    </bean>
+
+    <!--shiro核心过滤器-->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!-- 权限管理器 -->
+        <property name="securityManager" ref="securityManager"/>   
+        <!-- 登录地址 -->   
+        <property name="loginUrl" value="/loginPage"/>
+        <!-- 权限配置 -->
+        <property name="filterChainDefinitions">    
+            <value>  
+                /login = anon
+                /static/**=anon
+                /static/css/**=anon
+                /static/images/**=anon
+                /static/js/**=anon
+                /static/uploads/**=anon
+            </value>    
+        </property>    
+    </bean>
+    <!--bean最后生命周期结束后的处理程序-->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor" />
+</beans>  

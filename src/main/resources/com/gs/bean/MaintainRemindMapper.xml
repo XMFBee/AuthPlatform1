@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.MaintainRemindDAO" >
+  <resultMap id="BaseResultMap" type="maintainRemind" >
+    <id column="remindId" property="remindId" jdbcType="VARCHAR" />
+    <result column="userId" property="userId" jdbcType="VARCHAR" />
+    <result column="lastMaintainTime" property="lastMaintainTime" jdbcType="TIMESTAMP" />
+    <result column="lastMaintainMileage" property="lastMaintainMileage" jdbcType="DOUBLE" />
+    <result column="remindMsg" property="remindMsg" jdbcType="VARCHAR" />
+    <result column="remindTime" property="remindTime" jdbcType="TIMESTAMP" />
+    <result column="remindType" property="remindType" jdbcType="VARCHAR" />
+    <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+    <result column="remindCreatedTime" property="remindCreatedTime" jdbcType="TIMESTAMP" />
+
+    <association property="checkin" javaType="com.gs.bean.Checkin">
+      <id column="checkinId" property="checkinId"></id>
+      <result column="userId" property="userId"></result>
+      <result column="userName" property="userName"></result>
+    </association>
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id column="company_id" property="companyId"></id>
+      <result column="company_name" property="companyName"></result>
+      <result column="company_address" property="companyAddress"></result>
+      <result column="company_tel" property="companyTel"></result>
+    </association>
+
+  </resultMap>
+
+  <select id="queryByPager" resultMap="BaseResultMap" parameterType="com.gs.common.bean.Pager">
+    select mr.*,c.userId,c.userName,c.checkinId
+    from t_maintain_remind mr,t_checkin c where mr.userId = c.userId
+    and remindMsg is not null and c.checkinStatus = 'Y'
+    <if test="user.companyId != null and user.companyId != ''">
+      and mr.companyId = #{user.companyId}
+    </if>
+    order by mr.remindCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    select count(*) from t_maintain_remind mr,t_checkin c where mr.userId = c.userId
+    and remindMsg is not null and c.checkinStatus = 'Y'
+    <if test="companyId != null and companyId != ''">
+      and mr.companyId = #{companyId}
+    </if>
+  </select>
+
+  <update id="update" parameterType="maintainRemind">
+    update t_maintain_remind set remindMsg=#{remindMsg},remindTime=#{remindTime},remindType=#{remindType},remindCreatedTime=#{remindCreatedTime} where remindId=#{remindId}
+  </update>
+
+  <select id="queryByPagerNull" resultMap="BaseResultMap" parameterType="com.gs.common.bean.Pager">
+    select mr.*,c.userId,c.userName,c.checkinId
+    from t_maintain_remind mr,t_checkin c where mr.userId = c.userId
+    and remindMsg is null and c.checkinStatus = 'Y'
+    <if test="user.companyId != null and user.companyId != ''">
+      and mr.companyId = #{user.companyId}
+    </if>
+    order by mr.remindCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countNull" resultType="int" parameterType="com.gs.bean.User">
+    select count(*) from t_maintain_remind mr,t_checkin c where mr.userId = c.userId
+    and remindMsg is null and c.checkinStatus = 'Y'
+    <if test="companyId != null and companyId != ''">
+      and mr.companyId = #{companyId}
+    </if>
+  </select>
+  <insert id="insert"  parameterType="maintainRemind">
+    <![CDATA[
+			insert into t_maintain_remind(remindId, userId, lastMaintainTime, lastMaintainMileage, remindMsg, remindTime, remindType,
+			    remindCreatedTime,companyId)
+				values(uuid(), #{userId}, #{lastMaintainTime}, #{lastMaintainMileage}, #{remindMsg}, now(), #{remindType}, now(),#{companyId})
+		]]>
+  </insert>
+
+  <insert id="insertBatch"  parameterType="java.util.List">
+    insert into t_maintain_remind (remindId,userId,lastMaintainTime,lastMaintainMileage)values
+    <foreach collection="list" item="item" index="index" separator="," >
+      (uuid(),#{item.userId},#{item.lastMaintainTime},#{item.lastMaintainMileage})
+    </foreach>
+  </insert>
+
+  <select id="queryByPagerUser" resultMap="BaseResultMap" parameterType="com.gs.common.bean.Pager">
+    select mr.*,c.userId,c.userName,c.checkinId
+    from t_maintain_remind mr,t_checkin c where mr.userId = c.userId
+    and mr.userId = #{userId} and c.checkinStatus = 'Y'
+    order by mr.remindCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countUser" resultType="int">
+    select count(*) from t_maintain_remind mr,t_checkin c where mr.userId = c.userId
+    and mr.userId = #{userId} and c.checkinStatus = 'Y'
+  </select>
+
+  <select id="blurredQuery" resultMap="BaseResultMap">
+    select mr.*,c.userId,c.userName,c.checkinId
+    from t_maintain_remind mr,t_checkin c where mr.userId = c.userId
+    and remindMsg is not null and c.checkinStatus = 'Y'
+    <if test="pager.user.companyId != null and pager.user.companyId != ''">
+      and mr.companyId = #{pager.user.companyId}
+    </if>
+    <if test="maintainRemind.userId != null and maintainRemind.userId != ''">
+      and c.userName like concat('%',#{maintainRemind.userId},'%')
+    </if>
+    <if test="maintainRemind.lastMaintainMileage != null and maintainRemind.lastMaintainMileage != ''">
+      and mr.lastMaintainMileage like concat('%',#{maintainRemind.lastMaintainMileage},'%')
+    </if>
+    <if test="maintainRemind.remindMsg != null and maintainRemind.remindMsg != ''">
+      and mr.remindMsg like concat('%',#{maintainRemind.remindMsg},'%')
+    </if>
+    <if test="maintainRemind.remindType != null and maintainRemind.remindType != ''">
+      and mr.remindType like concat('%',#{maintainRemind.remindType},'%')
+    </if>
+    order by mr.remindCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countByBlurred"  resultType="int">
+    select count(*) from t_maintain_remind mr,t_checkin c where mr.userId = c.userId
+    and remindMsg is not null and c.checkinStatus = 'Y'
+    <if test="user.companyId != null and user.companyId != ''">
+      and mr.companyId = #{user.companyId}
+    </if>
+    <if test="maintainRemind.userId != null and maintainRemind.userId != ''">
+      and c.userName like concat('%',#{maintainRemind.userId},'%')
+    </if>
+    <if test="maintainRemind.lastMaintainMileage != null and maintainRemind.lastMaintainMileage != ''">
+      and mr.lastMaintainMileage like concat('%',#{maintainRemind.lastMaintainMileage},'%')
+    </if>
+    <if test="maintainRemind.remindMsg != null and maintainRemind.remindMsg != ''">
+      and mr.remindMsg like concat('%',#{maintainRemind.remindMsg},'%')
+    </if>
+    <if test="maintainRemind.remindType != null and maintainRemind.remindType != ''">
+      and mr.remindType like concat('%',#{maintainRemind.remindType},'%')
+    </if>
+  </select>
+
+  <select id="queryById" resultType="maintainRemind">
+    SELECT mr.* FROM t_maintain_remind mr where mr.remindId = #{remindId}
+  </select>
+
+</mapper>

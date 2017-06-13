@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.AccessoriesTypeDAO">
+    <resultMap id="AccessoriesTypeMap" type="com.gs.bean.AccessoriesType">
+        <id column="accTypeId" property="accTypeId" jdbcType="VARCHAR"/>
+        <result column="accTypeName" property="accTypeName" jdbcType="VARCHAR"/>
+        <result column="accTypeDes" property="accTypeDes" jdbcType="VARCHAR"/>
+        <result column="companyId" property="companyId" jdbcType="VARCHAR"/>
+        <result column="accTypeStatus" property="accTypeStatus" jdbcType="VARCHAR"/>
+
+        <association property="company" javaType="com.gs.bean.Company">
+            <id property="companyId" column="companyId"/>
+            <id property="companyName" column="companyName"/>
+        </association>
+    </resultMap>
+
+    <!--
+        查询所有配件分类信息
+    -->
+    <select id="queryAll" resultMap="AccessoriesTypeMap" parameterType="com.gs.bean.User">
+        <![CDATA[
+            select * FROM auto_platform.t_accessories_type ac where 1=1 and ac.accTypeStatus = 'Y'
+        ]]>
+        <if test="companyId != '' and companyId !=null">
+            and ac.companyId = #{companyId}
+        </if>
+    </select>
+
+    <!-- 分页查询 -->
+    <select id="queryByPager" resultMap="AccessoriesTypeMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+        select ast.*,cp.companyId,cp.companyName
+        from auto_platform.t_accessories_type ast
+        LEFT JOIN auto_platform.t_company cp on ast.companyId=cp.companyId
+        where ast.accTypeStatus = 'Y'
+        ]]>
+        <if test="user.companyId != '' and user.companyId != null">
+            and ast.companyId = #{user.companyId}
+        </if>
+        limit #{beginIndex}, #{pageSize};
+    </select>
+
+    <!--查询有多少配件分类信息-->
+    <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(accTypeId) from auto_platform.t_accessories_type atp WHERE atp.accTypeStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+        and atp.companyId = #{companyId}
+    </if>
+  </select>
+
+    <!--
+        添加配件分类信息,默认添加状态为可用状态
+    -->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="AccessoriesType">
+     <![CDATA[
+        insert into auto_platform.t_accessories_type(accTypeId, accTypeName, accTypeDes, companyId, accTypeStatus)
+        values(uuid(),#{accTypeName},#{accTypeDes},#{companyId},'Y')
+        ]]>
+    </insert>
+
+    <!--
+        根据id删除配件分类信息
+    -->
+    <delete id="deleteById">
+        DELETE FROM auto_platform.t_accessories_type WHERE accTypeId=#{accTypeId}
+    </delete>
+
+    <!--
+        根据id更新配件分类信息
+    -->
+    <update id="update" keyProperty="id" parameterType="java.util.Map">
+        UPDATE auto_platform.t_accessories_type SET companyId=#{companyId}, accTypeName=#{accTypeName},accTypeDes=#{accTypeDes} WHERE accTypeId=#{accTypeId}
+    </update>
+
+    <!--
+        冻结配件分类信息
+    -->
+    <update id="inactive" keyProperty="id" parameterType="string">
+        <![CDATA[
+        update auto_platform.t_accessories_type set accTypeStatus = 'N' where accTypeId = #{accTypeId}
+        ]]>
+    </update>
+
+    <!--
+        激活配件分类信息
+    -->
+    <update id="active" keyProperty="id" parameterType="string">
+        <![CDATA[
+        update auto_platform.t_accessories_type set accTypeStatus = 'Y' where accTypeId = #{accTypeId}
+        ]]>
+    </update>
+
+    <select id="queryByPagerDisable" resultMap="AccessoriesTypeMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+          SELECT atp.*,cp.companyId,cp.companyName FROM auto_platform.t_accessories_type atp
+           LEFT JOIN auto_platform.t_company cp on cp.companyId=atp.companyId
+          WHERE accTypeStatus='N'
+        ]]>
+        <if test="user.companyId != '' and user.companyId !=null">
+            and atp.companyId = #{user.companyId}
+        </if>
+      limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+        <![CDATA[
+          select count(accTypeId) from auto_platform.t_accessories_type atp where atp.accTypeStatus = 'N'
+        ]]>
+        <if test="companyId != '' and companyId !=null">
+            and atp.companyId = #{companyId}
+        </if>
+    </select>
+
+    <!-- 分页模糊查询 -->
+    <select id="blurredQuery" resultMap="AccessoriesTypeMap" >
+        <![CDATA[
+           select atp.*,cp.companyId,cp.companyName from auto_platform.t_accessories_type atp
+           LEFT JOIN auto_platform.t_company cp on atp.companyId=cp.companyId
+           where 1=1
+        ]]>
+        <if test="pager.user.companyId != '' and pager.user.companyId !=null">
+            and atp.companyId = #{pager.user.companyId}
+        </if>
+        and(
+        <if test="accType.companyId != '' and accType.companyId != null">
+            cp.companyName like '%${accType.companyId}%'
+        </if>
+        <if test="accType.companyId != '' and accType.companyId != null and
+            accType.accTypeName != '' and accType.accTypeName != null">
+            OR
+        </if>
+        <if test="accType.accTypeName!='' and accType.accTypeName!= null">
+            atp.accTypeName LIKE '%${accType.accTypeName}%'
+        </if>)
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <!-- 分页模糊查询个数 -->
+    <select id="countByBlurred" resultType="int">
+        <![CDATA[
+           select count(accTypeId) FROM auto_platform.t_accessories_type atp
+           LEFT JOIN auto_platform.t_company cp on cp.companyId=atp.companyId
+           where 1=1
+        ]]>
+        <if test="user.companyId != '' and user.companyId !=null">
+            and atp.companyId = #{user.companyId}
+        </if>
+        and(
+        <if test="accessoriesType.companyId != '' and accessoriesType.companyId != null">
+            cp.companyName LIKE '%${accessoriesType.companyId}%'
+        </if>
+        <if test="accessoriesType.accTypeName != '' and accessoriesType.accTypeName != null and
+            accessoriesType.companyId != '' and accessoriesType.companyId != null">
+            OR
+        </if>
+        <if test="accessoriesType.accTypeName!='' and accessoriesType.accTypeName!=null">
+            atp.accTypeName LIKE '%${accessoriesType.accTypeName}%'
+        </if>)
+    </select>
+
+    <select id="queryTypeName" resultMap="AccessoriesTypeMap">
+        <![CDATA[
+         select t.accTypeId, t.accTypeName from t_accessories a, t_accessories_type t,t_company c
+        where a.accTypeId = t.accTypeId and a.companyId = c.companyId and a.accStatus = 'Y' and
+        c.companyId = #{companyId}
+        ]]>
+    </select>
+
+    <!--查询配件分类name值是否唯一-->
+    <select id="queryAccTypeNameOne" resultType="int">
+        <![CDATA[
+          select count(accTypeName) from auto_platform.t_accessories_type where accTypeName = #{accTypeName}
+        ]]>
+        <if test="accTypeId != null and accTypeId != ''">
+            and accTypeId != #{accTypeId}
+        </if>
+    </select>
+
+</mapper>

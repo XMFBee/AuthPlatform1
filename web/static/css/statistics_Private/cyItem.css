@@ -1,0 +1,25 @@
+.normIcon {
+    width:18px;
+    height: 18px;
+    border-radius: 3px;
+    line-height: 18px;
+    font-weight:bold;
+    text-align: center;
+    font-size: 13px;
+    color: #fff;
+    min-width: 12px;
+    background-color: #e8e2e2;
+    display: inline-block;
+    padding: 1px 1px 0 5px;
+    margin-right: 5px;
+}
+.n1Icon {
+    background-color: #ffaeae ;
+}
+
+
+li {
+    list-style: none;
+    font-size: 15px;
+    margin-right: 15px;
+}

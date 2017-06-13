@@ -1,0 +1,628 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gs.dao.UserDAO">
+  <resultMap id="userBasicManageMap" type="com.gs.bean.User">
+    <id column="userId" jdbcType="VARCHAR" property="userId" />
+    <result column="userEmail" jdbcType="VARCHAR" property="userEmail" />
+    <result column="userPhone" jdbcType="VARCHAR" property="userPhone" />
+    <result column="userPwd" jdbcType="VARCHAR" property="userPwd" />
+    <result column="userNickname" jdbcType="VARCHAR" property="userNickname" />
+    <result column="userIdentity" jdbcType="VARCHAR" property="userIdentity" />
+    <result column="userName" jdbcType="VARCHAR" property="userName" />
+    <result column="userGender" jdbcType="VARCHAR" property="userGender" />
+    <result column="userBirthday" jdbcType="TIMESTAMP" property="userBirthday" />
+    <result column="userAddress" jdbcType="VARCHAR" property="userAddress" />
+    <result column="qqOpenId" jdbcType="VARCHAR" property="qqOpenId" />
+    <result column="weiboOpenId" jdbcType="VARCHAR" property="weiboOpenId" />
+    <result column="weChatOpenId" jdbcType="VARCHAR" property="weChatOpenId" />
+    <result column="userIcon" jdbcType="VARCHAR" property="userIcon" />
+    <result column="userDes" jdbcType="VARCHAR" property="userDes" />
+    <result column="companyId" jdbcType="VARCHAR" property="companyId" />
+    <result column="userSalary" jdbcType="DOUBLE" property="userSalary" />
+    <result column="userCreatedTime" jdbcType="TIMESTAMP" property="userCreatedTime" />
+    <result column="userLoginedTime" jdbcType="TIMESTAMP" property="userLoginedTime" />
+    <result column="userStatus" jdbcType="VARCHAR" property="userStatus" />
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id property="companyId" column="companyId"></id>
+      <result property="companyName" column="companyName"></result>
+      <result property="companyDes" column="compangyDes"></result>
+    </association>
+
+    <association property="role" javaType="com.gs.bean.Role">
+      <id property="roleId" column="roleId"></id>
+      <result property="roleName" column="roleName"></result>
+      <result property="roleDes" column="roleDes"></result>
+      <result property="roleStatus" column="roleStatus"></result>
+    </association>
+
+    <association property="userRole" javaType="com.gs.bean.UserRole">
+      <id property="userRoleId" column="userRoleId"/>
+      <id property="userId" column="userId"/>
+      <id property="roleId" column="roleId"/>
+    </association>
+  </resultMap>
+
+  <!-- 添加员工的基本信息 -->
+  <insert id="insert" parameterType="user">
+    <![CDATA[
+        insert into t_user(userId, userEmail, userPhone, userPwd, userIdentity, userName, userNickname,
+              userGender,userBirthday, userAddress, qqOpenId, weChatOpenId, weiboOpenId,
+              userIcon, userDes, companyId, userSalary, userCreatedTime, userStatus)
+            values(#{userId}, #{userEmail}, #{userPhone}, #{userPwd}, #{userIdentity},
+              #{userName}, #{userNickname}, #{userGender},#{userBirthday}, #{userAddress}, #{qqOpenId},
+              #{weChatOpenId}, #{weiboOpenId}, #{userIcon}, #{userDes}, #{companyId},
+              #{userSalary}, now(), 'Y');
+      ]]>
+  </insert>
+
+  <!-- 修改员工的基本信息 -->
+  <update id="update" parameterType="user">
+     <![CDATA[
+       update t_user u set u.userName = #{userName}, u.userEmail = #{userEmail}, u.userPhone = #{userPhone},
+            u.userIdentity = #{userIdentity}, u.userGender = #{userGender},u.userNickname=#{userNickname},
+           u.userBirthday = #{userBirthday}, u.userDes = #{userDes}, u.userSalary = #{userSalary},
+           u.userLoginedTime = #{userLoginedTime}, u.userAddress = #{userAddress}
+        where u.userId = #{userId};
+     ]]>
+  </update>
+
+  <!-- 修改个人资料 -->
+  <update id="updateSelfManage" parameterType="user">
+    <![CDATA[
+       update t_user u set u.userName = #{userName}, u.userEmail = #{userEmail}, u.userPhone = #{userPhone},
+            u.userIdentity = #{userIdentity}, u.userGender = #{userGender},u.userNickname=#{userNickname},
+           u.userBirthday = #{userBirthday}, u.userDes = #{userDes}, u.userAddress = #{userAddress}
+        where u.userId = #{userId};
+     ]]>
+  </update>
+
+  <!-- 修改密码 -->
+  <update id="updatePwd" parameterType="user">
+    <![CDATA[
+       update t_user u set u.userPwd = #{userPwd} where u.userId = #{userId};
+     ]]>
+  </update>
+
+  <!-- 根据邮箱手机号修改密码 -->
+  <update id="updatePwdByEmail">
+    <![CDATA[
+       update t_user u set u.userPwd = #{pwd} where u.userEmail=#{email};
+     ]]>
+  </update>
+
+  <update id="updatePwdByPhone">
+    <![CDATA[
+       update t_user u set u.userPwd = #{pwd} where u.userPhone=#{phone};
+     ]]>
+  </update>
+
+  <!-- 禁用 -->
+  <update id="inactive" parameterType="user">
+    <![CDATA[
+      update t_user u set u.userStatus = 'N' where u.userId = #{userId};
+    ]]>
+  </update>
+
+  <!-- 激活 -->
+  <update id="active" parameterType="user">
+    <![CDATA[
+      update t_user u set u.userStatus = 'Y' where u.userId = #{userId};
+    ]]>
+  </update>
+
+  <!-- 分页查询全部 -->
+  <select id="queryByPagerAll" resultMap="userBasicManageMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+      select u.*, r.*, c.companyId, c.companyName from t_user u
+          left join t_user_role ur on u.userId = ur.userId
+          left join t_role r on r.roleId = ur.roleId
+          left join t_company c on u.companyId = c.companyId
+        where 1 = 1
+    ]]>
+    <if test="user.companyId != null and user.companyId != ''">
+      and u.companyId = #{user.companyId}
+      and ur.roleId !='7ff4f1c5-3205-11e7-bc72-507b9d765567'
+      and ur.roleId != '80095901-3205-11e7-bc72-507b9d765567'
+    </if>
+    order by u.userCreatedTime desc
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <!-- 分页查询状态为可用的记录 -->
+  <select id="queryByPager" resultMap="userBasicManageMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+      select u.*, r.*, c.companyId, c.companyName from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        left join t_company c on u.companyId = c.companyId
+        where u.userStatus = 'Y'
+    ]]>
+    <if test="user.companyId != null and user.companyId != ''">
+      and u.companyId = #{user.companyId}
+      and ur.roleId !='7ff4f1c5-3205-11e7-bc72-507b9d765567'
+      and ur.roleId != '80095901-3205-11e7-bc72-507b9d765567'
+    </if>
+    order by u.userCreatedTime desc
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <!-- 分页查询状态为不可用的员工及角色名称 -->
+  <select id="queryByPagerDisable" resultMap="userBasicManageMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+      select u.*, r.*, c.companyId, c.companyName from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        left join t_company c on u.companyId = c.companyId
+        where u.userStatus = 'N'
+    ]]>
+    <if test="user.companyId != null and user.companyId != ''">
+      and u.companyId = #{user.companyId}
+      and ur.roleId !='7ff4f1c5-3205-11e7-bc72-507b9d765567'
+      and ur.roleId != '80095901-3205-11e7-bc72-507b9d765567'
+    </if>
+    order by u.userCreatedTime desc
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <!-- 不根据状态分页查询全部的 -->
+  <select id="queryAllByPager" resultMap="userBasicManageMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+      select u.*, r.*, c.companyId, c.companyName from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        left join t_company c on u.companyId = c.companyId
+        where 1 = 1
+    ]]>
+    order by u.userCreatedTime desc
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <!-- 根据状态分页查询的系统管理员 -->
+  <select id="querySystemAdminByPager" resultMap="userBasicManageMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+      select u.*, r.*, c.companyId, c.companyName from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        left join t_company c on u.companyId = c.companyId
+        where u.userStatus = #{userStatus}
+    ]]>
+    order by u.userCreatedTime desc
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <!-- 分页模糊查询 -->
+  <select id="queryByPagerLike" resultMap="userBasicManageMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+      select u.*, r.*, c.companyId, c.companyName from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        left join t_company c on u.companyId = c.companyId
+        where 1 = 1
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and u.companyId = #{user.companyId}
+    </if>
+    and(
+    <if test="user.userName != '' and user.userName != null">
+      u.userName like '%${user.userName}%'
+    </if>
+    <if test="user.userName != '' and  user.userName != null and
+            user.userPhone != '' and user.userPhone != null">
+      or
+    </if>
+    <if test="user.userPhone != '' and user.userPhone != null">
+      u.userPhone like '%${user.userPhone}%'
+    </if>
+    <if test="user.userPhone != '' and  user.userPhone != null and
+            user.companyId != '' and user.companyId != null">
+      or
+    </if>
+    <if test="user.companyId != '' and user.companyId != null">
+      c.companyName like '%${user.companyId}%'
+    </if>
+    <if test="user.companyId != '' and user.companyId != null and
+            user.roleId != '' and user.roleId != null">
+      or
+    </if>
+    <if test="user.roleId != '' and user.roleId != null">
+      r.roleName like '%${user.roleId}%'
+    </if>
+    )order by u.userCreatedTime desc
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <!-- 车主分页模糊查询 -->
+  <select id="queryCarByPagerLike" resultMap="userBasicManageMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+      select u.*, r.*, c.companyId, c.companyName from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        left join t_company c on u.companyId = c.companyId
+        where 1 = 1
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and u.companyId = #{user.companyId}
+    </if>
+    and(
+    <if test="user.userName != '' and user.userName != null">
+      u.userName like '%${user.userName}%'
+    </if>
+    <if test="user.userName != '' and  user.userName != null and
+            user.userPhone != '' and user.userPhone != null">
+      or
+    </if>
+    <if test="user.userPhone != '' and user.userPhone != null">
+      u.userPhone like '%${user.userPhone}%'
+    </if>
+    <if test="user.userPhone != '' and  user.userPhone != null and
+            user.companyId != '' and user.companyId != null">
+      or
+    </if>
+    <if test="user.companyId != '' and user.companyId != null">
+      c.companyName like '%${user.companyId}%'
+    </if>
+    <if test="user.companyId != '' and user.companyId != null and
+            user.roleId != '' and user.roleId != null">
+      or
+    </if>
+    <if test="user.roleId != '' and user.roleId != null">
+      r.roleName like '%${user.roleId}%'
+    </if>
+    )order by u.userCreatedTime desc
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <select id="count" resultType="int" parameterType="user">
+    <![CDATA[
+      select count(*) from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        where 1 = 1
+    ]]>
+    <if test="companyId != null and companyId != ''">
+      and u.companyId = #{companyId}
+      and ur.roleId !='8067fa42-3205-11e7-bc72-507b9d765567'
+    </if>
+  </select>
+
+  <!-- 模糊查询记录数 -->
+  <select id="countAllCar" resultType="int" parameterType="user">
+    <![CDATA[
+      select count(*) from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        where 1 = 1
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and u.companyId = #{user.companyId}
+    </if>
+    and(
+    <if test="user.userName != '' and user.userName != null">
+      u.userName like '%${user.userName}%'
+    </if>
+    <if test="user.userName != '' and  user.userName != null and
+            user.userPhone != '' and user.userPhone != null">
+      or
+    </if>
+    <if test="user.userPhone != '' and user.userPhone != null">
+      u.userPhone like '%${user.userPhone}%'
+    </if>
+    <if test="user.userPhone != '' and  user.userPhone != null and
+            user.companyId != '' and user.companyId != null">
+      or
+    </if>
+    <if test="user.companyId != '' and user.companyId != null">
+      c.companyName like '%${user.companyId}%'
+    </if>
+    <if test="user.companyId != '' and user.companyId != null and
+            user.roleId != '' and user.roleId != null">
+      or
+    </if>
+    <if test="user.roleId != '' and user.roleId != null">
+      r.roleName like '%${user.roleId}%'
+    </if>
+    )
+  </select>
+
+  <select id="countAll" resultType="int" parameterType="user">
+    <![CDATA[
+      select count(*) from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        where 1 = 1
+    ]]>
+  </select>
+
+  <select id="countOK" resultType="int" parameterType="user">
+    <![CDATA[
+      select count(*) from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        where 1 = 1 and u.userStatus = 'Y'
+    ]]>
+    <if test="companyId != null and companyId != ''">
+      and u.companyId = #{companyId}
+      and ur.roleId !='7ff4f1c5-3205-11e7-bc72-507b9d765567'
+      and ur.roleId != '80095901-3205-11e7-bc72-507b9d765567'
+    </if>
+  </select>
+
+  <select id="countNO" resultType="int" parameterType="user">
+    <![CDATA[
+      select count(*) from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        where 1 = 1 and u.userStatus = 'N'
+    ]]>
+    <if test="companyId != null and companyId != ''">
+      and u.companyId = #{companyId}
+      and ur.roleId !='7ff4f1c5-3205-11e7-bc72-507b9d765567'
+      and ur.roleId != '80095901-3205-11e7-bc72-507b9d765567'
+    </if>
+  </select>
+
+  <select id="countStatus" resultType="int" parameterType="user">
+    <![CDATA[
+      select count(*) from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        where 1 = 1 and u.userStatus = #{userStatus}
+    ]]>
+    <if test="companyId != null and companyId != ''">
+      and u.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="countSystemAdminStatus" resultType="int" parameterType="user">
+    <![CDATA[
+      select count(*) from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        where 1 = 1 and u.userStatus = #{userStatus}
+    ]]>
+    <if test="companyId != null and companyId != ''">
+      and ur.roleId =='7ff4f1c5-3205-11e7-bc72-507b9d765567'
+      and ur.roleId == '80095901-3205-11e7-bc72-507b9d765567'
+    </if>
+  </select>
+
+  <!-- 下拉列表 -->
+  <select id="queryAll" resultMap="userBasicManageMap" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select * from t_user u where 1 = 1 and u.userStatus = 'Y'
+    ]]>
+    <if test="companyI != null and companyId != ''">
+      and u.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!-- 根据id查询员工的基本信息 -->
+  <select id="queryById" resultMap="userBasicManageMap" parameterType="user">
+    <![CDATA[
+      select u.*, r.*, c.companyId, c.companyName from t_user u
+          left join t_user_role ur on u.userId = ur.userId
+          left join t_role r on r.roleId = ur.roleId
+          left join t_company c on u.companyId = c.companyId
+       where u.userId = #{userId}
+    ]]>
+    <if test="companyId != null and companyId != ''">
+      and u.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!-- 根据角色查询车主的基本信息 不分状态 -->
+  <select id="queryCarByRoleName" resultMap="userBasicManageMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+      select u.*, r.*,c.companyId, c.companyName from t_user u
+          left join t_user_role ur on u.userId = ur.userId
+          left join t_role r on r.roleId = ur.roleId
+          left join t_company c on u.companyId = c.companyId
+       where 1 = 1
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and u.companyId = #{companyId}
+    </if>
+    and r.roleName = '车主'
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <!-- 查询角色为车主的可用状态的基本信息 -->
+  <select id="queryCarByOk" resultMap="userBasicManageMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select u.*, r.*,c.companyId, c.companyName from t_user u
+          left join t_user_role ur on u.userId = ur.userId
+          left join t_role r on r.roleId = ur.roleId
+          left join t_company c on u.companyId = c.companyId
+       where 1 = 1
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and u.companyId = #{companyId}
+    </if>
+    and r.roleName = '车主' and u.userStatus = 'Y'
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <!-- 查询角色为车主的不可用状态的基本信息 -->
+  <select id="queryCarByNo" resultMap="userBasicManageMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select u.*, r.*,c.companyId, c.companyName from t_user u
+          left join t_user_role ur on u.userId = ur.userId
+          left join t_role r on r.roleId = ur.roleId
+          left join t_company c on u.companyId = c.companyId
+       where 1 = 1
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and u.companyId = #{companyId}
+    </if>
+    and r.roleName = '车主' and u.userStatus = 'N'
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <!-- 车主记录数 不分状态 -->
+  <select id="countCar" resultType="int">
+    <![CDATA[
+      select count(*) from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        where 1 = 1 and r.roleName = '车主'
+    ]]>
+  </select>
+
+  <!-- 可用的车主总记录数 -->
+  <select id="countCarByOk" resultType="int" parameterType="String">
+    <![CDATA[
+      select count(*) from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        where 1 = 1 and r.roleName = '车主' and u.userStatus = 'Y'
+    ]]>
+  </select>
+
+  <!-- 不可用的车主总记录数 -->
+  <select id="countCarByNo" resultType="int" parameterType="String">
+    <![CDATA[
+      select count(*) from t_user u
+        left join t_user_role ur on u.userId = ur.userId
+        left join t_role r on r.roleId = ur.roleId
+        where 1 = 1 and r.roleName = '车主' and u.userStatus = 'N'
+    ]]>
+  </select>
+
+  <!-- 根据id查询员工的基本信息 -->
+  <select id="queryInfoById" resultMap="userBasicManageMap" parameterType="String">
+    <![CDATA[
+      select u.*, c.* from t_user u
+          left join t_company c on u.companyId = c.companyId
+      where u.userId = #{userId}
+    ]]>
+  </select>
+
+  <select id="queryRoles" parameterType="String" resultType="String">
+    SELECT roleName FROM auto_platform.t_role WHERE roleStatus = 'Y' and roleId
+    IN (select t_user_role.roleId from auto_platform.t_user_role
+    WHERE userId = (select t_user.userId from auto_platform.t_user where userEmail = #{email} OR userPhone=#{email}))
+  </select>
+
+  <select id="queryPermissions" parameterType="String" resultType="String">
+    SELECT permissionName FROM auto_platform.t_permission
+    WHERE permissionStatus = 'Y' and permissionId IN (SELECT t_role_permission.permissionId FROM auto_platform.t_role_permission
+    WHERE roleId IN (SELECT t_user_role.roleId FROM auto_platform.t_user_role
+    WHERE userId = (SELECT t_user.userId FROM auto_platform.t_user
+    WHERE userEmail = #{email} OR userPhone=#{email})))
+  </select>
+
+  <!-- 根据维修保养记录查询到用户的email发送邮件提醒车主进行提车 -->
+  <select id="queryEmail" resultMap="userBasicManageMap">
+    <![CDATA[
+      select u.* from t_user u where userId in (
+      select userId from t_checkin where checkinId in (
+      select ck.checkinId from t_maintain_record m, t_checkin ck
+      where m.checkinId = ck.checkinId and m.recordId in (${ids})));
+    ]]>
+  </select>
+
+  <!-- 根据手机号查询是否当前数据库已经存在此手机号 注册验证 -->
+  <select id="queryPhoneByOne" resultType="int">
+    <![CDATA[
+      select count(userId) from t_user where userPhone = #{userPhone} and userId != #{userId};
+    ]]>
+  </select>
+
+  <!-- 根据手机号查询是否当前数据库已经存在此手机号 注册验证 -->
+  <select id="queryPhoneIsNull" resultType="int">
+    <![CDATA[
+      select count(userId) from t_user where userPhone = #{phone};
+    ]]>
+  </select>
+
+  <!-- 根据手机号查询是否当前数据库已经存在此手机号 注册验证 -->
+  <select id="queryEmailIsNull" resultType="int">
+    <![CDATA[
+      select count(userId) from t_user where userEmail = #{email};
+    ]]>
+  </select>
+
+  <!-- 根据手机号查询是否当前数据库已经存在此手机号 人员管理添加和修改时验证 -->
+  <select id="queryIsPhoneByOne" resultType="int">
+    <![CDATA[
+      select count(userPhone) from t_user where userPhone = #{userPhone}
+    ]]>
+    <if test="userId != null and userId != ''">
+      and userId != #{userId}
+    </if>
+  </select>
+
+  <!-- 根据email查询是否当前数据库已经存在此email 人员管理添加和修改时验证 -->
+  <select id="queryIsEmailByOne" resultType="int">
+    <![CDATA[
+      select count(userEmail) from t_user where userEmail = #{userEmail}
+    ]]>
+    <if test="userId != null and userId != ''">
+      and userId != #{userId}
+    </if>
+  </select>
+
+  <!-- 根据email查询是否当前数据库已经存在此email 人员管理添加和修改时验证 -->
+  <select id="queryIsIdentityByOne" resultType="int">
+    <![CDATA[
+      select count(userIdentity) from t_user where userIdentity = #{userIdentity}
+    ]]>
+    <if test="userId != null and userId != ''">
+      and userId != #{userId}
+    </if>
+  </select>
+
+  <select id="queryByEmail" resultMap="userBasicManageMap">
+    <![CDATA[
+          SELECT *FROM auto_platform.t_user WHERE userStatus = 'Y' and userEmail=#{email} OR userPhone=#{email}
+        ]]>
+  </select>
+
+  <!-- 根据角色名称查询人员基本信息 -->
+  <select id="queryByRoleName" resultMap="userBasicManageMap">
+    <![CDATA[
+      SELECT u.* FROM t_user u, t_user_role ur, t_role r
+	    WHERE u.userId = ur.userId AND ur.roleId = r.roleId AND r.roleName IN (#{roleName})
+    ]]>
+  </select>
+
+  <!--根据用户输入的邮箱或者手机号判断成功时, 查询到此用户所有信息-->
+  <select id ="queryUser" resultMap="userBasicManageMap">
+    <![CDATA[
+      select r.*, u.*, ur.*,c.* from t_user u
+      LEFT JOIN t_company c on u.companyId = c.companyId
+      LEFT JOIN t_user_role ur on ur.userId = u.userId
+      LEFT JOIN t_role r on ur.roleId = r.roleId
+      where userPhone= #{email} or userEmail = #{email}
+    ]]>
+  </select>
+
+  <!-- 统计电话号码是否存在  -->
+  <select id ="queryByPhone" resultMap="userBasicManageMap">
+    <![CDATA[
+      select u.*, r.roleId, r.roleName from t_user u
+          left join t_user_role ur on u.userId = ur.userId
+          left join t_role r on r.roleId = ur.roleId
+          left join t_company c on u.companyId = c.companyId
+       where  1 = 1 and userPhone= #{userPhone}
+    ]]>
+  </select>
+  <!-- 同上 -->
+  <update id="updIcon" >
+    <![CDATA[
+      update  t_user set userIcon=#{userIcon} where userId = #{userId}
+    ]]>
+  </update>
+
+
+  <select id="queryByCompanyId" resultMap="userBasicManageMap">
+    <![CDATA[
+      SELECT u.userName,u.userPhone,u.userEmail,u.userIcon from auto_platform.t_user u
+      LEFT JOIN auto_platform.t_company cp on u.companyId = cp.companyId
+      WHERE 1 = 1 and u.companyId = #{companyId}
+      order by u.userCreatedTime desc
+    ]]>
+  </select>
+
+</mapper>

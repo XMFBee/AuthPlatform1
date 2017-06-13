@@ -1,0 +1,18 @@
+1、select2    Bootstrap Multiselect
+2、BootstrapDialog
+3、BootstrapConfirmation(可选的)
+4、文件上传 jQuery File Upload    Bootstrap fileinput
+5、pNotify
+6、在线编辑器：Bootstrap WYSIWYG    bootstrap-wysihtml5     summernote
+7、小图看大图：lightbox
+8、时间控件：bootstrap-datetimepicker   colok-picker time-picker
+9、bootstrap-progressbar
+10、bootstrap video player
+11、bootstrap star-rating
+12、blueimp Gallery      画廊
+13、菜单    metisMenu
+14、表格   bs grid jquery datagrid       jQuery Bootgrid
+15、时间周期选择    daterangepicker
+16、前面验证    jquery-validation-bootstrap-tooltip
+17、两个选项的开关  switch
+18、icheck

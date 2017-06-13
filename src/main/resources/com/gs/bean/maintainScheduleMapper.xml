@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.MaintainScheduleDAO" >
+    <resultMap id="MaintainScheduleMap" type="com.gs.bean.MaintainSchedule" >
+        <id column="maintainScheduleId" property="maintainScheduleId" jdbcType="VARCHAR" />
+        <result column="maintainRecordId" property="maintainRecordId" jdbcType="VARCHAR" />
+        <result column="maintainScheduleDes" property="maintainScheduleDes" jdbcType="VARCHAR" />
+        <result column="msCreatedTime" property="msCreatedTime" jdbcType="TIMESTAMP" />
+        <result column="msStatus" property="msStatus" jdbcType="VARCHAR" />
+
+        <association property="maintainRecord" javaType="com.gs.bean.MaintainRecord">
+            <id column="recordId" property="recordId"></id>
+            <result column="checkinId" property="checkinId"></result>
+            <result column="startTime" property="startTime"/>
+            <result column="endTime" property="endTime"/>
+            <result column="actualEndTime" property="actualEndTime"/>
+            <result column="recordCreatedTime" property="recordCreatedTime"/>
+            <result column="pickupTime" property="pickupTime"/>
+            <result column="recordStatus" property="recordStatus"/>
+
+            <association property="checkin" javaType="com.gs.bean.Checkin">
+                <id column="checkinId" property="checkinId" jdbcType="VARCHAR" />
+                <result column="userId" property="userId" jdbcType="VARCHAR" />
+                <result column="appointmentId" property="appointmentId" jdbcType="VARCHAR" />
+                <result column="userName" property="userName" jdbcType="VARCHAR" />
+                <result column="userPhone" property="userPhone" jdbcType="VARCHAR" />
+                <result column="brandId" property="brandId" jdbcType="VARCHAR" />
+                <result column="colorId" property="colorId" jdbcType="VARCHAR" />
+                <result column="modelId" property="modelId" jdbcType="VARCHAR" />
+                <result column="plateId" property="plateId" jdbcType="VARCHAR" />
+                <result column="carPlate" property="carPlate" jdbcType="VARCHAR" />
+                <result column="arriveTime" property="arriveTime" jdbcType="TIMESTAMP" />
+                <result column="carMileage" property="carMileage" jdbcType="DOUBLE" />
+                <result column="carThings" property="carThings" jdbcType="VARCHAR" />
+                <result column="intactDegrees" property="intactDegrees" jdbcType="VARCHAR" />
+                <result column="userRequests" property="userRequests" jdbcType="VARCHAR" />
+                <result column="maintainOrFix" property="maintainOrFix" jdbcType="VARCHAR" />
+                <result column="checkinCreatedTime" property="checkinCreatedTime" jdbcType="TIMESTAMP" />
+                <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+                <result column="checkinStatus" property="checkinStatus" jdbcType="VARCHAR" />
+                <result column="nowOil" property="nowOil" jdbcType="DOUBLE" />
+                <result column="ifClearCar" property="ifClearCar" jdbcType="VARCHAR" />
+            </association>
+        </association>
+    </resultMap>
+
+    <!--计数激活状态-->
+    <select id="count" resultType="int">
+        <![CDATA[
+          select count(maintainScheduleId) from t_maintain_schedule m where msStatus='Y'
+        ]]>
+
+    </select>
+
+    <!--计数不可用-->
+    <select id="countByDisable" resultType="int">
+        <![CDATA[
+        SELECT count(*) FROM t_maintain_schedule m WHERE 1=1 AND m.msStatus = 'N'
+       ]]>
+
+    </select>
+
+    <!--查询不可用进度-->
+    <select id="queryByPagerDisable" resultMap="MaintainScheduleMap">
+        <![CDATA[
+          select ms.*,c.recordId,c.checkinId
+          from auto_platform.t_maintain_schedule ms
+          LEFT JOIN t_maintain_record c on ms.maintainScheduleId=c.recordId
+          where ms.msStatus = 'N' ORDER BY ms.msCreatedTime DESC
+        ]]>
+        limit #{beginIndex}, #{pageSize};
+    </select>
+
+    <!--分页查询-->
+    <select id="queryByPager" resultMap="MaintainScheduleMap" parameterType="com.gs.common.bean.Pager">
+      <![CDATA[
+          select ms.*,c.recordId,c.checkinId
+          from auto_platform.t_maintain_schedule ms
+          LEFT JOIN t_maintain_record c on ms.maintainScheduleId=c.recordId
+          where ms.msStatus='Y' order by ms.msCreatedTime Desc
+        ]]>
+        limit #{beginIndex}, #{pageSize};
+    </select>
+
+    <!--查询全部-->
+    <select id="queryAll" resultMap="MaintainScheduleMap">
+        <![CDATA[
+          select * from auto_platform.t_maintain_schedule where 1=1 and msStatus='Y'
+        ]]>
+        <if test="user.companyId != '' and user.companyId !=null">
+            and s.companyId = #{user.companyId}
+        </if>
+    </select>
+
+    <!--根据id分页查询-->
+    <select id="queryScheduleByRecord" resultMap="MaintainScheduleMap">
+        <![CDATA[
+          select ms.*,c.recordId,c.checkinId
+          from auto_platform.t_maintain_schedule ms
+          LEFT JOIN t_maintain_record c on ms.maintainScheduleId=c.recordId
+          where ms.maintainRecordId = #{recordId}
+          ORDER BY ms.msCreatedTime ASC
+        ]]>
+    </select>
+
+    <!--添加维修保养进度-->
+    <insert id="insert" parameterType="maintainSchedule">
+        <![CDATA[
+          INSERT into auto_platform.t_maintain_schedule
+          (maintainScheduleId, maintainRecordId, maintainScheduleDes, msCreatedTime,msStatus)
+          VALUES(uuid(),#{maintainRecordId},#{maintainScheduleDes}, now(),'Y')
+        ]]>
+    </insert>
+
+    <update id="update" parameterType="maintainSchedule">
+        <![CDATA[
+          UPDATE auto_platform.t_maintain_schedule
+          SET maintainRecordId = #{maintainRecordId}, maintainScheduleDes = #{maintainScheduleDes} where maintainScheduleId=#{maintainScheduleId}
+        ]]>
+    </update>
+
+    <update id="updateById" >
+        <![CDATA[
+          UPDATE auto_platform.t_maintain_schedule SET msStatus='Y' where maintainScheduleId=#{maintainScheduleId}
+        ]]>
+    </update>
+</mapper>

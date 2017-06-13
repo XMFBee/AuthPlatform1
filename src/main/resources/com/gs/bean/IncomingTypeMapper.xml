@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.IncomingTypeDAO" >
+  <resultMap id="incomingTypeMap" type="com.gs.bean.IncomingType" >
+    <id column="inTypeId" property="inTypeId" jdbcType="VARCHAR" />
+    <result column="inTypeName" property="inTypeName" jdbcType="VARCHAR" />
+    <result column="inTypeStatus" property="inTypeStatus" jdbcType="VARCHAR" />
+    <result column="createTime" property="createTime"  />
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id column="companyId" property="companyId"/>
+    </association>
+
+
+
+
+
+  </resultMap>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(*) from t_incoming_type i where 1 =1 and i.inTypeStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and i.companyId = #{companyId}
+      order by i.createTime Desc
+    </if>
+  </select>
+
+  <select id="queryByPager" resultMap="incomingTypeMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+        select i.* from t_incoming_type i  where 1 =1 and i.inTypeStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and i.companyId = #{user.companyId}
+      order by i.createTime Desc
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User" >
+    <![CDATA[
+ select count(*) from t_incoming_type i where 1 =1 and i.inTypeStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and i.companyId = #{companyId}
+      order by i.createTime Desc
+    </if>
+  </select>
+
+  <select id="queryByPagerDisable" resultMap="incomingTypeMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+        select i.* from t_incoming_type i  where 1 =1 and i.inTypeStatus = 'N'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and i.companyId = #{user.companyId}
+      order by i.createTime Desc
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="queryById" resultMap="incomingTypeMap">
+    <![CDATA[
+        select *  from t_incoming_type where inTypeName = #{inTypeName} and inTypeStatus = 'Y'
+    ]]>
+    <if test="inTypeId != null and inTypeId != ''">
+      and inTypeId != #{inTypeId}
+    </if>
+  </select>
+
+  <select id="queryAll" resultMap="incomingTypeMap" parameterType="com.gs.bean.User">
+    <![CDATA[
+            select * FROM auto_platform.t_incoming_type o where 1=1 and o.inTypeStatus = 'Y'
+        ]]>
+    <if test="companyId != '' and companyId !=null">
+      and o.companyId = #{companyId}
+    </if>
+  </select>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="inTypeId" parameterType="incomingType">
+    <![CDATA[
+        insert into t_incoming_type(inTypeId, companyid, inTypeName, inTypeStatus,createTime) values(uuid(),#{companyId},#{inTypeName}, 'Y',now())
+        ]]>
+  </insert>
+
+  <update id="update" keyProperty="inTypeId" parameterType="incomingType">
+    <![CDATA[
+        update t_incoming_type set inTypeName = #{inTypeName}, companyId = #{companyId},inTypeStatus = #{inTypeStatus} where inTypeId = #{inTypeId}
+        ]]>
+  </update>
+
+  <!--冻结数据-->
+  <update id="inactive" keyProperty="inTypeId" parameterType="incomingType">
+    <![CDATA[
+        update t_incoming_type set inTypeStatus = 'N' where inTypeId = #{inTypeId}
+        ]]>
+  </update>
+
+  <!--激活数据-->
+  <update id="active" keyProperty="inTypeId" parameterType="incomingType">
+    <![CDATA[
+        update t_incoming_type set inTypeStatus = 'Y' where inTypeId = #{inTypeId}
+        ]]>
+  </update>
+
+</mapper>

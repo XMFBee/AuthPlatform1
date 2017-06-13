@@ -1,0 +1,102 @@
+body,html{
+    margin: 0;
+    padding: 0;
+    min-width: 800px;
+    font-family:Microsoft YaHei,Arial,simsun, Helvetica, sans-serif;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+*{
+    margin:0;
+    padding: 0;
+}
+li{
+    list-style-type:none;
+}
+.main{
+    width:100%;
+    height: auto;
+}
+
+/*第一个导航栏模块*/
+.nav-first{
+    width:100%;
+    height:auto;
+    background-color: #e6e6e6;
+}
+.nav-first ul{
+    margin: 5px 0 ;
+}
+.nav-first ul li {
+    float: left;
+    font-size:15px;
+    margin: 0 15px;
+    white-space:nowrap;
+    color:grey;
+}
+.nav-first ul a:hover li{
+    color: #0d8ddb;
+}
+.right-ul{
+    float: right;
+    margin-right: 10px;
+}
+/*底部模块*/
+.t-bottom{
+    text-align: center;
+    width: 100%;
+    background-color: #0d8ddb;
+}
+.t-bottom span{
+    color: white;
+
+}
+/*表单部分*/
+.login-content{
+    background: url(/static/img/Frontpage/43162.jpg)0 -80px repeat;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+.content{
+    width: 400px;
+    height: auto;
+    margin: 10px auto;
+    padding:25px;
+    box-shadow: 4px 4px 3px #000;
+    background: rgba(0,0,0,0.2);
+    border-radius:5px;
+}
+.form-logo{
+    margin-bottom:20px;
+    text-align: center;
+}
+.form-group{
+    overflow: hidden;
+}
+.form-group .btn{
+    margin-bottom: 20px;
+    color: #000;
+}
+.form-group .btn:hover{
+    background: rgba(0,0,0,0.2);
+    border: solid white 1px;
+    color:#fff;
+}
+#login{
+    display: block;
+}
+#reg{
+    display: none;
+}
+.caveat{
+    color: #a94442;
+    font-size: 85%;
+}
+.caveat{
+    display:none;
+}
+.surre:hover{
+    color: #01AAED;
+    text-decoration: none;
+}

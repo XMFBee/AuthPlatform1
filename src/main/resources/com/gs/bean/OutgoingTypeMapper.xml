@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.OutgoingTypeDAO" >
+  <resultMap id="outGoingTypeMap" type="com.gs.bean.OutgoingType" >
+    <id column="outTypeId" property="outTypeId" jdbcType="VARCHAR" />
+    <result column="outTypeName" property="outTypeName" jdbcType="VARCHAR" />
+    <result column="outTypeStatus" property="outTypeStatus" jdbcType="VARCHAR" />
+    <result column="createTime" property="createTime"  />
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id column="companyId" property="companyId"/>
+    </association>
+  </resultMap>
+
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(*) from t_outgoing_type o where o.outTypeStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and o.companyId = #{companyId}
+      order by o.createTime Desc
+    </if>
+  </select>
+
+  <select id="queryByPager" resultMap="outGoingTypeMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+        select * from t_outgoing_type o where 1 =1 and o.outTypeStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and o.companyId = #{user.companyId}
+      order by o.createTime Desc
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User" >
+    <![CDATA[
+        select count(*) from t_outgoing_type o where o.outTypeStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and o.companyId = #{companyId}
+      order by o.createTime Desc
+    </if>
+  </select>
+
+  <select id="queryByPagerDisable" resultMap="outGoingTypeMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+          select * from t_outgoing_type o where 1 =1 and o.outTypeStatus = 'N'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and o.companyId = #{user.companyId}
+      order by o.createTime Desc
+    </if>
+     limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="queryById" resultMap="outGoingTypeMap">
+    <![CDATA[
+        select * from t_outgoing_type where outTypeName = #{outTypeName} and outTypeStatus = 'Y'
+    ]]>
+    <if test="outTypeId != null and outTypeId != ''">
+      and outTypeId != #{outTypeId}
+    </if>
+  </select>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="outTypeId" parameterType="outGoingType">
+    <![CDATA[
+        insert into t_outgoing_type(outTypeId,companyId,outTypeName, outTypeStatus,createTime) values(uuid(), #{companyId}, #{outTypeName}, 'Y',now())
+        ]]>
+  </insert>
+
+  <update id="update" keyProperty="outTypeId" parameterType="outGoingType">
+    <![CDATA[
+        update t_outgoing_type set outTypeName = #{outTypeName},companyId = #{companyId}, outTypeStatus = #{outTypeStatus} where outTypeId = #{outTypeId}
+        ]]>
+  </update>
+
+  <!--冻结数据-->
+  <update id="inactive" keyProperty="outTypeId" parameterType="outGoingType">
+    <![CDATA[
+        update t_outgoing_type set outTypeStatus = 'N' where outTypeId = #{outTypeId}
+        ]]>
+  </update>
+
+  <!--激活数据-->
+  <update id="active" keyProperty="outTypeId" parameterType="outGoingType">
+    <![CDATA[
+        update t_outgoing_type set outTypeStatus = 'Y' where outTypeId = #{outTypeId}
+        ]]>
+  </update>
+
+  <select id="queryAll" resultMap="outGoingTypeMap" parameterType="com.gs.bean.User">
+    <![CDATA[
+            select * FROM auto_platform.t_outgoing_type o where 1=1 and o.outTypeStatus = 'Y'
+        ]]>
+    <if test="companyId != '' and companyId !=null">
+      and o.companyId = #{companyId}
+    </if>
+  </select>
+
+</mapper>

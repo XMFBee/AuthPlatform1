@@ -1,0 +1,330 @@
+html,body{
+    margin: 0;
+    padding: 0;
+    font-family: 'microsoft Yahei','Open Sans', sans-serif;
+    width: 100%;
+    height: auto;
+    overflow-x:hidden;
+}
+.nav{
+    background-color:white ;
+
+}
+.container-fluid{
+    min-width: 1350px;
+}
+.container-fluid .navbar-header a{
+    text-decoration:none;
+}
+.container-fluid ul{
+    font-size: 18px;
+}
+.container-fluid ul li{
+    padding: 0 10px;
+    color: black;
+}
+
+#menu-bg{
+    background:url(/static/img/Frontpage/menu-bg1.png);
+    width: 220px;
+    text-align: center;
+    margin-right: -30px;
+    font-size: 20px;
+}
+#menu-bg a{
+    color:white;
+}
+#menu-bg2{
+    background: url(/static/img/Frontpage/menu-bg2.png);
+    text-align: center;
+    width: 180px;
+    font-size: 20px;
+}
+#menu-bg2 a{
+    color: white;
+}
+.icon-li:after{
+    position: absolute;
+    content: "";
+    width: 0px;
+    height: 25px;
+    top: 15px;
+    left: 0px;
+    border-right:1px solid grey;
+    transform: rotate(20deg);
+}
+/*轮播图*/
+#myCarousel{
+    width: 100%;
+    height: 422px;
+    margin-top: 50px;
+}
+.carousel-inner{
+    height: 422px;
+    width: 100%;
+}
+.carousel-inner img{
+    width: 100%;
+    height: 100%;
+}
+.carousel-caption{
+    padding-bottom: 27%;
+    font-size: 20px;
+}
+.carousel button{
+    border:none;
+}
+.Maincontent2{
+    height: 700px;
+    width: 100%;
+    background: url(/static/img/Frontpage/bg2.png);
+}
+.Maincontent{
+    height: 600px;
+    width:100%;
+    padding-top:5%;
+    background: url(/static/img/Frontpage/xc-bg6.jpg);
+}
+
+.title{
+    text-align: center;
+    color: white;
+    margin-top: 0;
+    padding-top: 1%;
+    font-size: 4em;
+}
+.carousel-control{
+    opacity: 0.1;
+}
+.features-info{
+    width: 100%;
+    padding-top: 2%;
+    padding-left: 5%;
+}
+.secicon1{
+    width: auto;
+}
+.icon{
+    display: inline-block;
+    vertical-align:middle;
+    width: 90px;
+    height: 90px;
+}
+.icon-quan{
+    background: url("/static/img/Frontpage/quan.png") no-repeat;
+}
+.text-icon{
+    color: white;
+    padding-left: 15px;
+    font-weight: 600;
+}
+span{
+    font-size:30px;
+}
+#myCarousel.left{
+    width: 10%;
+    height: 95%;
+}
+#myCarousel.right{
+    width: 10%;
+    height: 95%;
+}
+.mc2-row{
+    padding-top: 80px;
+    padding-left:15px;
+    padding-right: 15px;
+    padding-bottom: 35px;
+    width: 100%;
+    height: 80%;
+}
+.text p{
+    height: auto;
+    margin: 0px 15px;
+    padding: 0px 0px;
+    color: white;
+    font-size: 24px;
+    line-height: 40px;
+}
+.right-img{
+    height: 80%;
+    width: 100%;
+}
+.button-box{
+    margin: 5%;
+    height: auto;
+    text-align: center;
+}
+.button-box .btn{
+    background-color:#eb9316;
+    box-shadow: 4px 4px 10px black;
+    color: white;
+    font-size: 20px;
+}
+.button-box2{
+    height: auto;
+    text-align: center;
+}
+.button-box2 .btn{
+    background-color:#eb9316;
+    box-shadow: 4px 4px 10px black;
+    color: white;
+    font-size: 20px;
+}
+.Maincontent3{
+    width: 100%;
+    height: 700px;
+    background: url(/static/img/Frontpage/bg3.png);
+}
+.title3{
+    margin-bottom: 5%;
+    padding-top: 5%;
+    color: white;
+    text-align: center;
+}
+.title3 h2{
+    font-size: 4em;
+}
+
+.mc3-txt{
+    color: white;
+    text-align: center;
+    margin-left: -160px;
+}
+.mc3-txt p{
+    font-size: 19px;
+}
+.jiantou{
+    position: absolute;
+    margin-top:0px ;
+    margin-left: 50px;
+}
+.jiantou2{
+    position: absolute;
+    margin-left: 50px ;
+    margin-top: 100px;
+}
+.container{
+    padding-right: 0px;
+}
+.Maincontent4{
+    padding: 80px 0 100px 0;
+    width: 100%;
+    height:650px;
+    background: url(/static/img/Frontpage/bg4.png);
+}
+.mc4-title{
+    text-align: center;
+
+}
+.mc4-title h2{
+    font-size: 4em;
+    margin: 15px 0;
+}
+.mc4-title-p{
+    color: #808080;
+    font-size: 24px;
+}
+.title-bg{
+    background: url(/static/img/Frontpage/t-bg1.png);
+    color: white;
+    width: 330px;
+    font-size: 24px;
+    padding: 0 10px;
+}
+.about-info{
+    padding: 40px 40px 50px 185px;
+}
+.Maincontent5{
+    background: url(/static/img/Frontpage/mc5-bg.png);
+    width: 100%;
+    height: 275px;
+
+}
+.team-con{
+    margin-left:10% ;
+}
+.mc5-top a{
+    text-decoration: none;
+}
+.mc5-top h2{
+    background-color: white;
+    width: 400px;
+    margin-left: 33%;
+    color: #0d8ddb;
+    font-size: 4em;
+}
+
+@media screen and(max-width: 456px){
+    .mc5-top h2{
+        margin-left: 29%;
+    }
+}
+.mc5-top{
+    padding-top: 5%;
+    text-align: center;
+}
+.mc5-top span{
+    font-size: 24px;
+}
+.go-top{
+    position:fixed;
+    background: url(/static/img/Frontpage/go-top2.png) no-repeat;
+    width: 48px;
+    height: 48px;
+    right: 2em;
+    bottom: 10em;
+}
+.bottom-nav{
+    width: 100%;
+    height: auto;
+}
+.bottom-nav a{
+    text-decoration: none;
+    color: #9d9d9d;
+}
+.btm-left{
+    font-size: 24px;
+    padding-left: 10%;
+    border-right: solid 1px #d4d4d4;
+}
+
+.phone{
+    padding-left: 15px;
+    font-size:22px;
+}
+.wechat{
+    text-align: center;
+    border-right: solid 1px #d4d4d4;
+    height: 163px;
+}
+.sm{
+    margin-left: 20px;
+}
+.gz{
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+.gz h4{
+    margin-bottom: 20px;
+}
+#mc5-rtimg{
+    margin-right: 20px;
+}
+.t-bottom{
+    margin-top: 10px;
+    text-align: center;
+    width: 100%;
+    background-color: #e2e2e2;
+}
+.t-bottom span{
+    margin-top: 20px;
+}
+
+.concart-warp{
+    width:100%;
+}
+.mc2-title{
+    font-size: 3em;
+    color: white;
+    text-align: center
+}

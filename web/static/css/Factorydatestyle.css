@@ -1,0 +1,76 @@
+.content{
+    background: url(/static/img/Frontpage/xc-bg.jpg)30% 0;
+    height:650px;
+    width: 100%;
+    padding-top: 20px;
+}
+.content-main{
+    width: 100%;
+}
+
+@media (max-width: 768px){
+    .content-main{
+        width:100%;
+    }
+}
+.showdata{
+    background: rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+.content-main label,h2{
+    color: white;
+}
+.show-left label{
+    font-size: 21px;
+}
+.show-left span{
+    color: #e8e8e8;
+    width: 250px;
+    font-size: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.show-left{
+    /*width: 50%;*/
+    float: left;
+}
+.show-left div{
+    margin-top: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.show-right{
+    margin: 15px 50px;
+    float: left;
+}
+
+@media (max-width: 768px){
+    .show-right{
+        float: left;
+    }
+}
+.company-logo img{
+    width: 95%;
+    height: 95%;
+}
+.company-logo{
+    margin-left:10px;
+    width: 230px;
+    height: 200px;
+}
+.btn{
+    width: 219px;
+    height: 38px;
+    background: #ff6600;
+    font-size: 18px;
+    color: white;
+}
+.btn:hover{
+    background: #FF9900;
+    color: #EEEEEE;
+}
+.rese-btn{
+    margin: 20px 10px;
+}

@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.AppointmentDAO" >
+  <resultMap id="appointmentMap" type="Appointment" >
+    <id column="appointmentId" property="appointmentId" jdbcType="VARCHAR" />
+    <result column="userId" property="userId" jdbcType="VARCHAR" />
+    <result column="userName" property="userName" jdbcType="VARCHAR" />
+    <result column="userPhone" property="userPhone" jdbcType="VARCHAR" />
+    <result column="brandId" property="brandId" jdbcType="VARCHAR" />
+    <result column="colorId" property="colorId" jdbcType="VARCHAR" />
+    <result column="modelId" property="modelId" jdbcType="VARCHAR" />
+    <result column="plateId" property="plateId" jdbcType="VARCHAR" />
+    <result column="carPlate" property="carPlate" jdbcType="VARCHAR" />
+    <result column="arriveTime" property="arriveTime" jdbcType="TIMESTAMP" />
+    <result column="maintainOrFix" property="maintainOrFix" jdbcType="VARCHAR" />
+    <result column="appCreatedTime" property="appCreatedTime" jdbcType="TIMESTAMP" />
+    <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+    <result column="appoitmentStatus" property="appoitmentStatus" jdbcType="VARCHAR" />
+    <result column="currentStatus" property="currentStatus" jdbcType="VARCHAR" />
+
+    <association property="brand" javaType="com.gs.bean.CarBrand">
+      <id property="brandId" column="brandId"/>
+      <id property="brandName" column="brandName"/>
+    </association>
+
+    <association property="color" javaType="com.gs.bean.CarColor">
+      <id property="colorId" column="colorId"/>
+      <id property="colorName" column="colorName"/>
+    </association>
+
+    <association property="plate" javaType="com.gs.bean.CarPlate">
+      <id property="plateId" column="plateId"/>
+      <id property="plateName" column="plateName"/>
+    </association>
+
+    <association property="model" javaType="com.gs.bean.CarModel">
+      <id property="modelId" column="modelId"/>
+      <id property="modelName" column="modelName"/>
+    </association>
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id property="companyId" column="companyId"/>
+      <id property="companyName" column="companyName"/>
+    </association>
+
+  </resultMap>
+
+  <select id="queryByPager" resultMap="appointmentMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select am.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, company.companyId,
+        company.companyName, cb.brandId, cb.brandName from t_appointment am
+       LEFT JOIN t_car_color cc on am.colorId =cc.colorId
+       LEFT JOIN t_car_model cm on am.modelId = cm.modelId
+       LEFT JOIN t_car_plate cp on am.plateId = cp.plateId
+       LEFT JOIN t_company company on am.companyId = company.companyId
+       LEFT JOIN t_car_brand cb on am.brandId = cb.brandId
+       where am.appoitmentStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and am.companyId = #{user.companyId}
+    </if>
+    order by am.appCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(appointmentId) from t_appointment am where am.appoitmentStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and am.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="queryByPagerDisable" resultMap="appointmentMap" parameterType="com.gs.common.bean.Pager">
+  <![CDATA[
+        select am.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+          cm.modelId, cm.modelName, company.companyId,
+          company.companyName, cb.brandId, cb.brandName from t_appointment am
+        LEFT JOIN t_car_color cc on am.colorId =cc.colorId
+        LEFT JOIN t_car_model cm on am.modelId = cm.modelId
+        LEFT JOIN t_car_plate cp on am.plateId = cp.plateId
+        LEFT JOIN t_company company on am.companyId = company.companyId
+        LEFT JOIN t_car_brand cb on am.brandId = cb.brandId
+        where am.appoitmentStatus = 'N'
+     ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and am.companyId = #{user.companyId}
+    </if>
+    order by am.appCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(appointmentId) from t_appointment am where am.appoitmentStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and am.companyId = #{companyId}
+    </if>
+  </select>
+
+  <insert id="insert" parameterType="Appointment">
+    <![CDATA[
+    insert into auto_platform.t_appointment(appointmentId,userId,userName,userPhone,brandId,colorId,modelId,
+    plateId,carPlate,arriveTime,maintainOrFix,appCreatedTime,companyId,appoitmentStatus,currentStatus)
+    values(uuid(),#{userId},#{userName},#{userPhone},#{brandId},#{colorId},#{modelId},#{plateId},#{carPlate},#{arriveTime},
+    #{maintainOrFix},now(),#{companyId},'Y',#{currentStatus});
+    ]]>
+  </insert>
+
+  <update id="update" parameterType="Appointment">
+    <![CDATA[
+        UPDATE auto_platform.t_appointment SET userName = #{userName}, userPhone = #{userPhone},
+        brandId = #{brandId}, colorId = #{colorId}, modelId = #{modelId}, plateId = #{plateId}, carPlate = #{carPlate},
+        arriveTime = #{arriveTime}, maintainOrFix = #{maintainOrFix}, currentStatus = #{currentStatus},
+         companyId = #{companyId}
+         WHERE appointmentId = #{appointmentId}
+    ]]>
+  </update>
+
+  <update id="updateCurrentById">
+    <![CDATA[
+        UPDATE auto_platform.t_appointment SET currentStatus = #{currentStatus} WHERE appointmentId = #{appointmentId}
+    ]]>
+  </update>
+
+  <!-- 分页模糊查询 -->
+  <select id="blurredQuery" resultMap="appointmentMap" >
+    <![CDATA[
+           select am.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName, company.companyId,
+            company.companyName, cb.brandId, cb.brandName from t_appointment am
+           LEFT JOIN t_user u on u.userId =am.userId
+           LEFT JOIN t_car_color cc on am.colorId =cc.colorId
+           LEFT JOIN t_car_model cm on am.modelId = cm.modelId
+           LEFT JOIN t_car_plate cp on am.plateId = cp.plateId
+           LEFT JOIN t_company company on am.companyId = company.companyId
+           LEFT JOIN t_car_brand cb on am.brandId = cb.brandId
+           where 1=1
+      ]]>
+    <if test="pager.user.companyId != '' and pager.user.companyId != null">
+      and am.companyId = #{pager.user.companyId}
+    </if>
+    and(
+    <if test="appointment.userName != '' and appointment.userName != null">
+      am.userName like '%${appointment.userName}%'
+    </if>
+    <if test="appointment.userName != '' and appointment.userName != null and
+            appointment.companyId != '' and appointment.companyId != null">
+      or
+    </if>
+    <if test="appointment.companyId != '' and appointment.companyId != null">
+      company.companyName like '%${appointment.companyId}%'
+    </if>
+    <if test="appointment.userName != '' and appointment.userName != null and
+            appointment.carPlate != '' and appointment.carPlate != null">
+      or
+    </if>
+    <if test="appointment.carPlate != '' and appointment.carPlate != null">
+      am.carPlate like '%${appointment.carPlate}%'
+    </if>
+    <if test="appointment.carPlate != '' and appointment.carPlate != null and
+            appointment.userPhone != '' and appointment.userPhone != null">
+      or
+    </if>
+    <if test="appointment.userPhone != '' and appointment.userPhone != null">
+      am.userPhone like '%${appointment.userPhone}%'
+    </if>
+    )order by am.appCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <!-- 分页模糊查询个数 -->
+  <select id="countByBlurred" resultType="int" >
+    <![CDATA[
+      select count(appointmentId) from t_appointment am
+      LEFT JOIN t_user u on u.userId =am.userId
+      LEFT JOIN t_car_color cc on am.colorId =cc.colorId
+      LEFT JOIN t_car_model cm on am.modelId = cm.modelId
+      LEFT JOIN t_car_plate cp on am.plateId = cp.plateId
+      LEFT JOIN t_company company on am.companyId = company.companyId
+      LEFT JOIN t_car_brand cb on am.brandId = cb.brandId
+      where 1=1
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and am.companyId = #{user.companyId}
+    </if>
+    and(
+    <if test="appointment.userName != '' and appointment.userName != null">
+      am.userName like '%${appointment.userName}%'
+    </if>
+    <if test="appointment.userName != '' and appointment.userName != null and
+    appointment.companyId != '' and appointment.companyId != null">
+      or
+    </if>
+    <if test="appointment.companyId != '' and appointment.companyId != null">
+      company.companyName like '%${appointment.companyId}%'
+    </if>
+    <if test="appointment.userName != '' and appointment.userName != null and
+    appointment.carPlate != '' and appointment.carPlate != null">
+      or
+    </if>
+    <if test="appointment.carPlate != '' and appointment.carPlate != null">
+      am.carPlate like '%${appointment.carPlate}%'
+    </if>
+    <if test="appointment.carPlate != '' and appointment.carPlate != null and
+    appointment.userPhone != '' and appointment.userPhone != null">
+      or
+    </if>
+    <if test="appointment.userPhone != '' and appointment.userPhone != null">
+      am.userPhone like '%${appointment.userPhone}%'
+    </if>)
+
+  </select>
+
+  <!--冻结数据-->
+  <update id="inactive" parameterType="Appointment">
+    <![CDATA[
+         update auto_platform.t_appointment set appoitmentStatus = 'N' where appointmentId = #{appointmentId}
+        ]]>
+  </update>
+
+  <!--激活数据-->
+  <update id="active" parameterType="Appointment">
+    <![CDATA[
+        update auto_platform.t_appointment set appoitmentStatus = 'Y' where appointmentId = #{appointmentId}
+        ]]>
+  </update>
+
+  <select id="queryByCurrentStatus" resultMap="appointmentMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select am.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, company.companyId,
+        company.companyName, cb.brandId, cb.brandName from t_appointment am
+       LEFT JOIN t_car_color cc on am.colorId =cc.colorId
+       LEFT JOIN t_car_model cm on am.modelId = cm.modelId
+       LEFT JOIN t_car_plate cp on am.plateId = cp.plateId
+       LEFT JOIN t_company company on am.companyId = company.companyId
+       LEFT JOIN t_car_brand cb on am.brandId = cb.brandId
+       where am.appoitmentStatus = 'Y' and am.currentStatus= '已预约'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and am.companyId = #{user.companyId}
+    </if>
+    order by am.appCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="countByCurrentStatus" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(appointmentId) from t_appointment am where am.appoitmentStatus = 'Y' and am.currentStatus= '已预约'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and am.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="queryByOwner" resultMap="appointmentMap">
+    <![CDATA[
+       select am.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, company.companyId,
+        company.companyName, cb.brandId, cb.brandName from t_appointment am
+       LEFT JOIN t_car_color cc on am.colorId =cc.colorId
+       LEFT JOIN t_car_model cm on am.modelId = cm.modelId
+       LEFT JOIN t_car_plate cp on am.plateId = cp.plateId
+       LEFT JOIN t_company company on am.companyId = company.companyId
+       LEFT JOIN t_car_brand cb on am.brandId = cb.brandId
+       where am.appoitmentStatus = 'Y' and am.userId = #{userId}
+    ]]>
+    order by am.appCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countByOwner" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(appointmentId) from t_appointment am where am.appoitmentStatus = 'Y' and am.userId = #{userId}
+    ]]>
+  </select>
+
+  <!-- 根据注册的手机号查询是否有预约记录为此手机号的预约记录 -->
+  <select id="queryByPhone" resultMap="appointmentMap">
+    <![CDATA[
+       select am.* from t_appointment am where am.userPhone = #{userPhone}
+    ]]>
+  </select>
+  <!-- 查询出有的预约id进行批量更新 -->
+  <update id="updateUserIds">
+    <![CDATA[
+        update auto_platform.t_appointment set userId=#{userId} where appointmentId in (${appIds})
+        ]]>
+  </update>
+
+  <select id="queryByCompanyId" resultMap="appointmentMap">
+    <![CDATA[
+        select cb.brandId ,cb.brandName, ap.userName,ap.userPhone,ap.carPlate,ap.maintainOrFix,ap.appCreatedTime from auto_platform.t_appointment ap
+        LEFT JOIN auto_platform.t_car_brand cb on cb.brandId= ap.brandId
+        WHERE ap.companyId = #{companyId}
+    ]]>
+    order by ap.appCreatedTime Desc
+    limit 0, 5
+  </select>
+</mapper>

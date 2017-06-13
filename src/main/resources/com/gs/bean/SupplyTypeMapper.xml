@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.SupplyTypeDAO" >
+  <resultMap id="supplyTypeMap" type="com.gs.bean.SupplyType" >
+    <id column="supplyTypeId" property="supplyTypeId" jdbcType="VARCHAR" />
+    <result column="supplyTypeName" property="supplyTypeName" jdbcType="VARCHAR" />
+    <result column="supplyTypeDes" property="supplyTypeDes" jdbcType="VARCHAR" />
+    <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+    <result column="supplyTypeStatus" property="supplyTypeStatus" jdbcType="VARCHAR" />
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id property="companyId" column="companyId"/>
+      <id property="companyName" column="companyName"/>
+    </association>
+
+  </resultMap>
+
+  <!-- 根据供应商类型名称查询是否当前数据库已经存在此名称 -->
+  <select id="queryNameByOne" resultType="int">
+    <![CDATA[
+      select count(supplyTypeName) from t_supply_type where supplyTypeName = #{supplyTypeName}
+    ]]>
+    <if test="supplyTypeId != null and supplyTypeId != ''">
+      and supplyTypeId != #{supplyTypeId}
+    </if>
+  </select>
+
+  <select id="queryAll" resultMap="supplyTypeMap" parameterType="com.gs.bean.User">
+    <![CDATA[
+          select * from t_supply_type st where st.supplyTypeStatus = 'Y'
+        ]]>
+    <if test="companyId != '' and companyId !=null">
+        and st.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(*) from t_supply_type st where st.supplyTypeStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and st.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="queryByPager" resultMap="supplyTypeMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+        select st.*,cp.companyId,cp.companyName
+        from auto_platform.t_supply_type st
+        LEFT JOIN auto_platform.t_company cp on st.companyId=cp.companyId
+        where st.supplyTypeStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and st.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+        select count(*) from t_supply_type st where st.supplyTypeStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and st.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="queryByPagerDisable" resultMap="supplyTypeMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select st.*,cp.companyId,cp.companyName
+        from auto_platform.t_supply_type st
+        LEFT JOIN auto_platform.t_company cp on st.companyId=cp.companyId
+        where st.supplyTypeStatus = 'N'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and st.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+  <!--
+      添加供应商类型信息,默认添加状态为可用状态
+  -->
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="SupplyType">
+    <![CDATA[
+        insert into auto_platform.t_supply_type(supplyTypeId, supplyTypeName, companyId, supplyTypeDes,supplyTypeStatus)
+        values(uuid(),#{supplyTypeName},#{companyId},#{supplyTypeDes},'Y')
+        ]]>
+  </insert>
+
+  <!--
+      根据id更新供应商类型信息
+  -->
+  <update id="update" keyProperty="id" parameterType="java.util.Map">
+    UPDATE auto_platform.t_supply_type SET supplyTypeName=#{supplyTypeName},companyId=#{companyId},
+    supplyTypeDes=#{supplyTypeDes} WHERE supplyTypeId=#{supplyTypeId}
+  </update>
+
+  <!--
+      冻结供应商类型信息
+  -->
+  <update id="inactive" keyProperty="id" parameterType="string">
+    <![CDATA[
+        update auto_platform.t_supply_type set supplyTypeStatus = 'N' where supplyTypeId = #{supplyTypeId}
+        ]]>
+  </update>
+
+  <!--
+      激活供应商类型信息
+  -->
+  <update id="active" keyProperty="id" parameterType="string">
+    <![CDATA[
+        update auto_platform.t_supply_type set supplyTypeStatus = 'Y' where supplyTypeId = #{supplyTypeId}
+        ]]>
+  </update>
+
+</mapper>

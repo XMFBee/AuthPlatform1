@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.UserRoleDAO" >
+  <resultMap id="BaseResultMap" type="com.gs.bean.UserRole" >
+    <id column="userRoleId" property="userRoleId" jdbcType="VARCHAR" />
+    <result column="userId" property="userId" jdbcType="VARCHAR" />
+    <result column="roleId" property="roleId" jdbcType="VARCHAR" />
+    <result column="urCreatedTime" property="urcreatedTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+  <!-- 添加人员角色 -->
+  <insert id="insert" parameterType="userRole">
+    <![CDATA[
+        insert into t_user_role(userRoleId, userId, roleId, urCreatedTime)
+            values(uuid(), #{userId}, #{roleId}, now());
+      ]]>
+  </insert>
+
+  <!-- 修改人员角色 -->
+  <update id="update" parameterType="userRole">
+    <![CDATA[
+      update t_user_role set roleId = #{roleId} where userId = #{userId};
+    ]]>
+  </update>
+
+</mapper>

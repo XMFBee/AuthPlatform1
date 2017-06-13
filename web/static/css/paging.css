@@ -1,0 +1,217 @@
+body {
+  background-color: #f0f0f0;
+  font-family: "Droid Sans","Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  padding: 1rem;
+  margin: 3rem auto;
+  border-radius: 0.2rem;
+  counter-reset: pagination;
+  text-align: center;
+}
+.container:after {
+  clear: both;
+  content: "";
+  display: table;
+}
+.container .paging-ul {
+  width: 100%;
+}
+
+
+
+.large {
+  /*width: 45rem;*/
+}
+
+.middle {
+  width: 32rem;
+}
+
+.small {
+  width: 22rem;
+}
+
+.xsmall {
+  width: 14rem;
+}
+
+.paging-ul, .paging-li {
+  list-style: none;
+  display: inline;
+  padding-left: 0px;
+}
+
+.paging-li {
+  counter-increment: pagination;
+}
+.paging-li:hover a {
+  color: #fdfdfd;
+  background-color: #01AAED;
+  border: solid 1px #01AAED;
+}
+.paging-li.active a {
+  color: #fdfdfd;
+  background-color: #01AAED;
+  border: solid 1px #01AAED;
+}
+.active-two a{
+  color: #fdfdfd;
+  background-color: #01AAED;
+  border: solid 1px #01AAED;
+}
+.paging-li:first-child {
+  float: left;
+}
+.paging-li:first-child a:after {
+  content: "";
+}
+.paging-li:nth-child(2) {
+  counter-reset: pagination;
+}
+.paging-li:last-child {
+  float: right;
+}
+.paging-li:last-child a:after {
+  content: "下一页";
+}
+.paging-li a {
+  border: solid 1px #d6d6d6;
+  border-radius: 0.2rem;
+  color: #7d7d7d;
+  text-decoration: none;
+  text-transform: uppercase;
+  display: inline-block;
+  text-align: center;
+  padding: 0.5rem 0.9rem;
+}
+.paging-li a:after {
+  content: " " counter(pagination) " ";
+}
+
+.large .paging-li a {
+  display: none;
+}
+.large .paging-li:first-child a {
+  display: inline-block;
+}
+.large .paging-li:first-child a:after {
+  content: "";
+}
+.large .paging-li:nth-child(2) a {
+  display: inline-block;
+}
+.large .paging-li:nth-child(3) a {
+  display: inline-block;
+}
+.large .paging-li:nth-child(4) a {
+  display: inline-block;
+}
+.large .paging-li:nth-child(5) a {
+  display: inline-block;
+}
+.large .paging-li:nth-child(6) a {
+  display: inline-block;
+}
+.large .paging-li:nth-child(7) a {
+  display: inline-block;
+}
+.large .paging-li:nth-child(8) a {
+  display: inline-block;
+}
+.large .paging-li:last-child a {
+  display: inline-block;
+}
+.large .paging-li:last-child a:after {
+  content: "下一页";
+}
+.large .paging-li:nth-last-child(2) a {
+  display: inline-block;
+}
+.large .paging-li:nth-last-child(3) {
+  display: inline-block;
+}
+/*.large .paging-li:nth-last-child(3):after {
+  padding: 0 1rem;
+  content: "...";
+}*/
+
+.middle .paging-li a {
+  display: none;
+}
+.middle .paging-li:first-child a {
+  display: inline-block;
+}
+.middle .paging-li:first-child a:after {
+  content: "<";
+}
+.middle .paging-li:last-child a {
+  display: inline-block;
+}
+.middle .paging-li:last-child a:after {
+  content: ">";
+}
+.middle .paging-li:nth-child(2) a {
+  display: inline-block;
+}
+.middle .paging-li:nth-child(3) a {
+  display: inline-block;
+}
+.middle .paging-li:nth-child(4) a {
+  display: inline-block;
+}
+.middle .paging-li:nth-child(5) a {
+  display: inline-block;
+}
+.middle .paging-li:nth-last-child(2) a {
+  display: inline-block;
+}
+.middle .paging-li:nth-last-child(3) {
+  display: inline-block;
+}
+.middle .paging-li:nth-last-child(3):after {
+  padding: 0 1rem;
+  content: "...";
+}
+
+.small .paging-li {
+  display: none;
+}
+.small .paging-li:first-child {
+  width: 50%;
+  display: inline;
+}
+.small .paging-li:first-child a:after {
+  content: "Previous Page";
+}
+.small .paging-li:last-child {
+  display: inline;
+}
+.small .paging-li:last-child a:after {
+  content: "Next Page";
+}
+
+.xsmall .paging-li {
+  display: none;
+}
+.xsmall .paging-li.active {
+  display: inline;
+}
+.xsmall .paging-li:first-child {
+  display: inline;
+}
+.xsmall .paging-li:first-child a:after {
+  content: "上一页";
+}
+.xsmall .paging-li:last-child {
+  display: inline;
+}
+.xsmall .paging-li:last-child a:after {
+  content: "下一页";
+}

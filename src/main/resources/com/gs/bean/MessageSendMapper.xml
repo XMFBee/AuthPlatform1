@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.MessageSendDAO" >
+  <resultMap id="BaseResultMap" type="messageSend" >
+    <id column="messageId" property="messageId" jdbcType="VARCHAR" />
+    <result column="userId" property="userId" jdbcType="VARCHAR" />
+    <result column="sendMsg" property="sendMsg" jdbcType="VARCHAR" />
+    <result column="sendTime" property="sendTime" jdbcType="TIMESTAMP" />
+    <result column="sendCreatedTime" property="sendCreatedTime" jdbcType="TIMESTAMP" />
+    <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+
+    <association property="checkin" javaType="com.gs.bean.Checkin">
+      <id column="checkinId" property="checkinId"></id>
+      <result column="user_id" property="userId"></result>
+      <result column="userName" property="userName"></result>
+    </association>
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id column="company_id" property="companyId"></id>
+      <result column="companyName" property="companyName"></result>
+      <result column="companyAddress" property="companyAddress"></result>
+      <result column="companyTel" property="companyTel"></result>
+    </association>
+
+    <association property="user" javaType="com.gs.bean.User">
+      <id column="user_ids" property="userId"/>
+      <result column="user_name" property="userName"/>
+      <result column="userEmail" property="userEmail"/>
+      <result column="userPhone" property="userPhone"/>
+    </association>
+  </resultMap>
+
+  <select id="queryByPager" resultMap="BaseResultMap" parameterType="com.gs.common.bean.Pager">
+    SELECT m.*,c.userId as user_id,c.userName,c.checkinId,
+    u.userPhone,u.userEmail,u.userName as user_name,u.userId as user_ids
+    FROM t_message_send m, t_checkin c, t_user u
+    where  m.userId = c.userId and c.userId = u.userId
+    and c.checkinStatus = 'Y'
+    <if test="user.companyId != null and user.companyId != ''">
+      and m.companyId = #{user.companyId}
+    </if>
+    order by m.sendCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User" >
+    SELECT count(*) FROM t_message_send m, t_checkin c, t_user u
+    where  m.userId = c.userId and c.userId = u.userId
+    and c.checkinStatus = 'Y'
+    <if test="companyId != null and companyId != ''">
+      and m.companyId = #{companyId}
+    </if>
+  </select>
+
+  <insert id="insertRemind" parameterType="messageSend">
+    insert into t_message_send(messageId,userId,sendMsg,sendTime,sendCreatedTime,companyId) values(#{messageId},#{userId},#{sendMsg},now(),now(),#{companyId})
+  </insert>
+
+  <insert id="insert" parameterType="messageSend">
+    insert into t_message_send(messageId,userId,sendMsg,sendTime,sendCreatedTime,companyId) values(uuid(),#{userId},#{sendMsg},now(),now(),#{companyId})
+  </insert>
+
+  <insert id="batchInsert" parameterType="java.util.List">
+    <!--<selectKey resultType="int" keyProperty="messageId" order="AFTER">-->
+      <!--SELECT LAST_INSERT_ID()-->
+    <!--</selectKey>-->
+    insert into t_message_send(messageId,userId,sendMsg,sendTime,sendCreatedTime,companyId)
+    values
+    <foreach collection="list" item="item" index="index" separator="," >
+      (uuid(),#{item.userId},#{item.sendMsg},now(),now(),#{item.companyId})
+    </foreach>
+  </insert>
+
+  <update id="update" parameterType="messageSend">
+    update t_message_send set sendMsg=#{sendMsg},sendTime=#{sendTime},sendCreatedTime=#{sendCreatedTime} where messageId=#{messageId}
+  </update>
+
+  <select id="blurredQuery" resultMap="BaseResultMap">
+    SELECT m.*,c.userId as user_id,c.userName,c.checkinId,
+    u.userPhone,u.userEmail,u.userName as user_name,u.userId as user_ids
+    FROM t_message_send m, t_checkin c, t_user u
+    where  m.userId = c.userId and c.userId = u.userId
+    and c.checkinStatus = 'Y'
+    <if test="pager.user.companyId != null and pager.user.companyId != ''">
+      and m.companyId = #{pager.user.companyId}
+    </if>
+    <if test="messageSend.userId != null and messageSend.userId != ''">
+      and c.userName like concat('%',#{messageSend.userId},'%')
+    </if>
+    <if test="messageSend.sendMsg != null and messageSend.sendMsg != ''">
+      and m.sendMsg like concat('%',#{messageSend.sendMsg},'%')
+    </if>
+    <if test="messageSend.user.userPhone != null and messageSend.user.userPhone != ''">
+      and u.userPhone like concat('%',#{messageSend.user.userPhone},'%')
+    </if>
+    order by m.sendCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countByBlurred"  resultType="int">
+    SELECT count(*) FROM t_message_send m, t_checkin c, t_user u
+    where  m.userId = c.userId and c.userId = u.userId
+    and c.checkinStatus = 'Y'
+    <if test="user.companyId != null and user.companyId != ''">
+      and m.companyId = #{user.companyId}
+    </if>
+    <if test="messageSend.userId != null and messageSend.userId != ''">
+      and c.userName like concat('%',#{messageSend.userId},'%')
+    </if>
+    <if test="messageSend.sendMsg != null and messageSend.sendMsg != ''">
+      and m.sendMsg like concat('%',#{messageSend.sendMsg},'%')
+    </if>
+    <if test="messageSend.user.userPhone != null and messageSend.user.userPhone != ''">
+      and u.userPhone like concat('%',#{messageSend.user.userPhone},'%')
+    </if>
+  </select>
+
+  <select id="queryById" resultType="messageSend">
+    SELECT m.* FROM t_message_send m where m.messageId = #{messageId}
+  </select>
+
+</mapper>

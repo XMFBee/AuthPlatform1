@@ -1,0 +1,294 @@
+body,html{
+    margin: 0;
+    padding: 0;
+    min-width: 1350px;
+    font-family: 'microsoft Yahei','Open Sans', sans-serif;
+    overflow-x: hidden;
+}
+
+
+li{
+    list-style-type:none;
+}
+.main{
+    width:100%;
+    height: auto;
+}
+
+/*第一个导航栏模块*/
+.nav-first{
+    width:100%;
+    height:auto;
+    background-color: #e6e6e6;
+}
+.nav-first ul{
+    margin: 5px 0 ;
+}
+.nav-first ul li {
+    float: left;
+    font-size:15px;
+    margin: 0 15px;
+    white-space:nowrap;
+    color:grey;
+}
+.nav-first ul a:hover li{
+    color: #0d8ddb;
+}
+.right-ul{
+    float: right;
+    margin-right: 10px;
+}
+
+
+/*第二个导航栏模块*/
+.nav-two{
+    background-color:#0e9aef;
+}
+.nav-two-ul{
+    margin:0px 50px;
+}
+.nav-two-ul li{
+    float: left;
+    font-size: 19px;
+    width: 150px;
+    height: 45px;
+    text-align: center;
+    line-height: 45px;
+}
+.nav-two-ul li:hover{
+    background: #0078e7;
+    color: white;
+}
+.actives{
+    background: #0078e7;
+    color: white;
+}
+.nav-two-ul a{
+    text-decoration: none;
+    color: #CBD5DD;
+}
+/*底部模块*/
+.index-bottom{
+    width: 100%;
+    height: auto;
+    background: #d4d4d4;
+}
+.bottom-main{
+    margin:15px 90px;
+}
+.bottom-bs{
+    margin-top:25px;
+    width: 360px;
+    height: 80px;
+    float: left;
+}
+.btm-title{
+    font-size:19px;
+    color: grey;
+}
+.bottom-bs span{
+    color: grey;
+    font-size: 15px;
+    height:42px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.bottom-bs a{
+    width: 300px;
+}
+.bg{
+    background: url(/static/img/Frontpage/bottom2.png)no-repeat left top;
+    width: 45px;
+    height: 80px;
+    float: left;
+}
+.bg-two{
+    background: url(/static/img/Frontpage/bottom2.png)no-repeat -40px top;
+    width: 45px;
+    height: 80px;
+    float: left;
+}
+.bg-three{
+    background: url(/static/img/Frontpage/bottom2.png)no-repeat -82px top;
+    width: 45px;
+    height: 80px;
+    float: left;
+}
+.bg-four{
+    background: url(/static/img/Frontpage/bottom2.png)no-repeat -132px top;
+    width: 45px;
+    height: 80px;
+    float: left;
+}
+.bg-five{
+    background: url(/static/img/Frontpage/bottom2.png)no-repeat -172px top;
+    width: 45px;
+    height: 80px;
+    float: left;
+}
+.bg-six{
+    background: url(/static/img/Frontpage/bottom2.png)no-repeat -220px top;
+    width: 45px;
+    height: 80px;
+    float: left;
+}
+.btm-des{
+    margin-top:5px;
+    width: 320px ;
+}
+.btm-des span:hover{
+    color: #e6e6e6;
+}
+.btm-two{
+    margin:15px 95px;
+    border-top: solid 1px #9d9d9d;
+}
+.btm-two > ul > li{
+    width: 386px;
+    height: 150px;
+    float: left;
+}
+.btm-ul{
+    padding: 0;
+}
+.saoma{
+    margin:0;
+    padding: 0px 10px;
+}
+.saoma li{
+    padding:15px 19px;
+    float: left;
+}
+.saoma li img{
+    width: 70px;
+    height: 70px;
+}
+.btm-an{
+    margin: 15px 30px;
+    padding-left:40px;
+}
+.btm-an a{
+    text-decoration: none;
+}
+.ruzhu{
+    background: #00a2d4;
+    line-height: 37px;
+    display: block;
+    text-align: center;
+    color: white;
+    font-size: 18px;
+    width: 200px;
+    height: 40px;
+}
+.ruzhu:hover{
+    color: #0e9aef;
+    background: white;
+}
+.jiam{
+    margin-top:15px;
+    background: #00a2d4;
+    line-height: 37px;
+    display: block;
+    text-align: center;
+    color: white;
+    font-size: 18px;
+    width: 200px;
+    height: 40px;
+}
+.jiam:hover{
+    color: #0e9aef;
+    background: white;
+}
+.t-bottom{
+    text-align: center;
+    width: 100%;
+    background-color: #000;
+}
+.t-bottom span{
+    color: white;
+
+}
+.go-top{
+    position:fixed;
+    background: url(/static/img/Frontpage/go-top2.png) no-repeat;
+    width: 48px;
+    height: 48px;
+    right: 2em;
+    bottom: 10em;
+}
+/*热门商家模块*/
+.showfactory{
+    padding-top: 40px;
+    margin: 15px 0;
+    height: auto;
+}
+.factory{
+    border: solid 1px #d3d3d3;
+    width: 349px;
+    height: 300px;
+    margin: 15px;
+    display: inline-block;
+}
+.factory:hover{
+    border:solid #0090ff 1px;
+    box-shadow: 4px 4px 7px #eee;
+}
+.factory .f-img{
+    height: 50%;
+    padding: 15px 20px;
+}
+.factory .f-img img{
+    width: 100%;
+    height: 100%;
+}
+.f-des{
+    padding:15px 10px;
+}
+.company{
+    margin-top: 15px;
+}
+
+.com-des,.com-address,.cns-a{
+    text-decoration: none;
+    color: black;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding:0 15px;
+    width:250px;
+    height:30px;
+    white-space: nowrap;
+}
+
+.icon-t{
+    padding:0 14px;
+}
+.com-icon .icon-t i{
+    display: inline-block;
+    height: 25px;
+    width: 25px;
+    cursor: pointer;
+}
+.tuij{
+    float: right;
+    background: red;
+    color: white;
+    border-radius:5px ;
+    padding: 4px 5px;
+}
+.ms,.hp{
+    font-size: 20px;
+    color: #a7aaab;
+}
+.hot-icon{
+    background: url(/static/img/Frontpage/syicon-bg.png);
+    background-position: -6px -329px;
+    width: 30px;
+    height: 30px;
+    float: left;
+    margin-right:5px;
+}
+
+.con{
+    border:1px solid #d7d7d7;
+}

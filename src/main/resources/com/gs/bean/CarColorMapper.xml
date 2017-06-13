@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.CarColorDAO" >
+  <resultMap id="colorMap" type="carcolor" >
+    <id column="colorId" property="colorId" jdbcType="VARCHAR" />
+    <result column="colorName" property="colorName" jdbcType="VARCHAR" />
+    <result column="colorRGB" property="colorRgb" jdbcType="VARCHAR" />
+    <result column="colorHex" property="colorHex" jdbcType="VARCHAR" />
+    <result column="colorDes" property="colorDes" jdbcType="VARCHAR" />
+    <result column="colorStatus" property="colorStatus" jdbcType="VARCHAR" />
+  </resultMap>
+
+    <select id="queryAll" resultMap="colorMap" parameterType="com.gs.bean.User">
+        <![CDATA[
+          select * from t_car_color cc where 1=1 and cc.colorStatus = 'Y'
+        ]]>
+    </select>
+
+    <select id="queryByPager" resultMap="colorMap"  parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+          select * from t_car_color cc where cc.colorStatus = 'Y'
+           ]]>
+        limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <select id="count" resultType="int" parameterType="com.gs.bean.User">
+        <![CDATA[
+      select count(colorId) from t_car_color cc where 1=1 and cc.colorStatus = 'Y'
+    ]]>
+    </select>
+
+    <insert id="insert" parameterType="carcolor">
+        <![CDATA[
+            insert into t_car_color(colorId, colorName, colorRGB, colorHex, colorDes, colorStatus) values(uuid(), #{colorName}, #{colorRgb}, #{colorHex}, #{colorDes}, 'Y')
+         ]]>
+    </insert>
+
+    <update id="update" parameterType="carcolor">
+        <![CDATA[
+            update t_car_color set colorName = #{colorName},colorRGB = #{colorRgb},colorHex = #{colorHex},colorDes = #{colorDes},colorStatus = 'Y' where colorId = #{colorId}
+         ]]>
+    </update>
+
+    <!-- 分页查询禁用 -->
+    <select id="queryByPagerDisable" resultMap="colorMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+       select * from t_car_color cc where cc.colorStatus = 'N'
+    ]]>
+        limit #{beginIndex}, #{pageSize}
+    </select>
+    <!-- 分页查询禁用个数 -->
+    <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+        <![CDATA[
+      select count(colorId) from t_car_color cc where cc.colorStatus = 'N'
+    ]]>
+    </select>
+
+    <!--  查询此颜色名称是否已存在 -->
+    <select id="querycolorName" resultType="int">
+        <![CDATA[
+      select count(colorName) from t_car_color where colorName = #{colorName}
+    ]]>
+        <if test="colorId != null and colorId != ''">
+            and colorId != #{colorId}
+        </if>
+    </select>
+
+    <!--冻结数据-->
+    <update id="inactive" keyProperty="colorId" parameterType="carcolor">
+        <![CDATA[
+         update t_car_color set colorStatus = 'N' where colorId = #{colorId}
+        ]]>
+    </update>
+
+    <!--激活数据-->
+    <update id="active" keyProperty="colorId" parameterType="carcolor">
+        <![CDATA[
+        update t_car_color set colorStatus = 'Y' where colorId = #{colorId}
+        ]]>
+    </update>
+</mapper>

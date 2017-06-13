@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.SalaryDAO" >
+  <resultMap id="salaryMap" type="com.gs.bean.Salary" >
+    <id column="salaryId" property="salaryId" jdbcType="VARCHAR" />
+    <result column="userId" property="userId" jdbcType="VARCHAR" />
+    <result column="prizeSalary" property="prizeSalary" jdbcType="DOUBLE" />
+    <result column="minusSalay" property="minusSalay" jdbcType="DOUBLE" />
+    <result column="totalSalary" property="totalSalary" jdbcType="DOUBLE" />
+    <result column="salaryDes" property="salaryDes" jdbcType="VARCHAR" />
+    <result column="salaryTime" property="salaryTime" jdbcType="TIMESTAMP" />
+    <result column="salaryCreatedTime" property="salaryCreatedTime" jdbcType="TIMESTAMP" />
+
+
+    <association property="user" javaType="com.gs.bean.User">
+      <id column="userId" property="userId"/>
+      <result column="userName" property="userName"/>
+      <result column="userStatus" property="userStatus"/>
+    </association>
+
+  </resultMap>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+       select count(*) from t_salary s,t_user u where s.userId = u.userId and u.userStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and u.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="queryByPager" resultMap="salaryMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+        select s.*, u.userId,u.userName from t_salary s, t_user u where 1 =1 and u.userId = s.userId  and u.userStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and u.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="queryAll" resultMap="salaryMap" parameterType="com.gs.bean.User">
+    <![CDATA[
+        select *  from t_salary s, t_user u where s.userId = u.userId and u.userStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and u.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="queryById" resultMap="salaryMap">
+    <![CDATA[
+        select *  from t_salary where userId = #{userId};
+    ]]>
+  </select>
+
+
+  <select id="queryBySalary" resultMap="salaryMap">
+    <![CDATA[
+        select * from t_user where userId = #{userId} and not ISNULL(userSalary)
+    ]]>
+  </select>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="salaryId" parameterType="salary">
+    <![CDATA[
+        insert into t_salary(salaryId, userId, prizeSalary,minusSalay,totalSalary,salaryDes,salaryTime,salaryCreatedTime) values(uuid(), #{userId}, #{prizeSalary}, #{minusSalay}, #{totalSalary}, #{salaryDes}, #{salaryTime}, now())
+        ]]>
+  </insert>
+
+  <update id="update" keyProperty="salaryId" parameterType="salary">
+    <![CDATA[
+        update t_salary set salaryId = #{salaryId}, userId = #{userId}, prizeSalary = #{prizeSalary}, minusSalay = #{minusSalay}, totalSalary = #{totalSalary}, salaryDes = #{salaryDes}, salaryTime = #{salaryTime} where salaryId = #{salaryId}
+        ]]>
+  </update>
+
+  <insert id="addInsert">
+    <selectKey resultType="int" keyProperty="salaryId" order="AFTER">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into t_salary
+    values
+    <foreach collection="list" item="item" index="index" separator="," >
+      (uuid(),#{item.userId},#{item.prizeSalary},#{item.minusSalay},
+      #{item.totalSalary},#{item.salaryDes},#{item.salaryTime},now())
+    </foreach>
+  </insert>
+
+  <!-- 分页模糊查询 -->
+  <select id="blurredQuery" resultMap="salaryMap">
+    <![CDATA[
+         select s.*, u.userId,u.userName from t_salary s, t_user u where 1 =1 and u.userId = s.userId
+        ]]>
+    <if test="pager.user.companyId != '' and pager.user.companyId != null">
+      and u.companyId = #{pager.user.companyId}
+    </if>
+    and(
+    <if test="salary.userId != '' and salary.userId != null">
+      u.userName like '%${salary.userId}%'
+    </if>)
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <!-- 分页模糊查询工资 -->
+  <select id="querySalary" resultMap="salaryMap">
+    <![CDATA[
+        select s.*, u.userId,u.userName from t_salary s, t_user u where 1 =1 and u.userId = s.userId and totalSalary between #{start} and #{end}
+        ]]>
+    <if test="pager.user.companyId != '' and pager.user.companyId != null">
+      and u.companyId = #{pager.user.companyId}
+    </if>
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <!-- 分页模糊查询工资个数-->
+  <select id="countSalary" resultType="int">
+    <![CDATA[
+        select count(*) from t_salary s, t_user u where 1 =1 and u.userId = s.userId and totalSalary between #{start} and #{end}
+        ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and u.companyId = #{user.companyId}
+    </if>
+  </select>
+
+  <!-- 分页模糊查询个数 -->
+  <select id="countByBlurred" resultType="int">
+    <![CDATA[
+         select count(*) from t_salary s, t_user u where 1 =1 and u.userId = s.userId
+        ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and u.companyId = #{user.companyId}
+    </if>
+    and(
+    <if test="salary.userId != '' and salary.userId != null">
+      u.userName like '%${salary.userId}%'
+    </if>
+    )
+  </select>
+</mapper>

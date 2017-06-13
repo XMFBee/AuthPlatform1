@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.ChargeBillDAO" >
+  <resultMap id="chargeBillMap" type="com.gs.bean.ChargeBill" >
+    <id column="chargeBillId" property="chargeBillId" jdbcType="VARCHAR" />
+    <result column="maintainRecordId" property="maintainRecordId" jdbcType="VARCHAR" />
+    <result column="chargeBillMoney" property="chargeBillMoney" jdbcType="DOUBLE" />
+    <result column="paymentMethod" property="paymentMethod" jdbcType="VARCHAR" />
+    <result column="actualPayment" property="actualPayment" jdbcType="DOUBLE" />
+    <result column="chargeTime" property="chargeTime" jdbcType="TIMESTAMP" />
+    <result column="chargeCreatedTime" property="chargeCreatedTime" jdbcType="TIMESTAMP" />
+    <result column="chargeBillDes" property="chargeBillDes" jdbcType="VARCHAR" />
+    <result column="chargeBillStatus" property="chargeBillStatus" jdbcType="VARCHAR" />
+    <result column="cdStatus" property="cdStatus" jdbcType="VARCHAR" />
+
+    <association property="maintainRecord" javaType="com.gs.bean.MaintainRecord">
+      <id column="recordId" property="recordId"/>
+      <result column="checkinId" property="checkinId"/>
+      <result column="startTime" property="startTime"/>
+      <result column="endTime" property="endTime"/>
+      <result column="actualEndTime" property="actualEndTime"/>
+      <result column="recordCreatedTime" property="recordCreatedTime"/>
+      <result column="pickupTime" property="pickupTime"/>
+      <result column="recordDes" property="recordDes"/>
+      <result column="recordStatus" property="recordStatus"/>
+      <result column="currentStatus" property="currentStatus"/>
+
+        <association property="checkin" javaType="com.gs.bean.Checkin">
+          <id column="checkinId" property="checkinId"></id>
+          <result column="userName" property="userName"></result>
+          <result column="userName" property="userName" jdbcType="VARCHAR"/>
+          <result column="userPhone" property="userPhone" jdbcType="VARCHAR"/>
+          <result column="brandId" property="brandId" jdbcType="VARCHAR"/>
+          <result column="colorId" property="colorId" jdbcType="VARCHAR"/>
+          <result column="modelId" property="modelId" jdbcType="VARCHAR"/>
+          <result column="plateId" property="plateId" jdbcType="VARCHAR"/>
+          <result column="carPlate" property="carPlate" jdbcType="VARCHAR"/>
+          <result column="arriveTime" property="arriveTime" jdbcType="TIMESTAMP"/>
+          <result column="carMileage" property="carMileage" jdbcType="DOUBLE"/>
+          <result column="carThings" property="carThings" jdbcType="VARCHAR"/>
+          <result column="intactDegrees" property="intactDegrees" jdbcType="VARCHAR"/>
+          <result column="userRequests" property="userRequests" jdbcType="VARCHAR"/>
+          <result column="maintainOrFix" property="maintainOrFix" jdbcType="VARCHAR"/>
+          <result column="companyId" property="companyId" jdbcType="VARCHAR"/>
+          <result column="nowOil" property="nowOil" jdbcType="DOUBLE"/>
+          <result column="ifClearCar" property="ifClearCar" jdbcType="VARCHAR"/>
+
+          <association property="brand" javaType="com.gs.bean.CarBrand">
+            <id property="brandId" column="brandId"/>
+            <result property="brandName" column="brandName"/>
+          </association>
+
+          <association property="color" javaType="com.gs.bean.CarColor">
+            <id property="colorId" column="colorId"/>
+            <result property="colorName" column="colorName"/>
+          </association>
+
+          <association property="plate" javaType="com.gs.bean.CarPlate">
+            <id property="plateId" column="plateId"/>
+            <result property="plateName" column="plateName"/>
+          </association>
+
+          <association property="model" javaType="com.gs.bean.CarModel">
+            <id property="modelId" column="modelId"/>
+            <result property="modelName" column="modelName"/>
+          </association>
+
+          <association property="company" javaType="com.gs.bean.Company">
+            <id property="companyId" column="companyId"/>
+            <result property="companyName" column="companyName"/>
+            <result property="companyAddress" column="companyAddress"/>
+            <result property="companyTel" column="companyTel"/>
+            <result property="companyLogo" column="companyLogo"/>
+          </association>
+        </association>
+    </association>
+
+  </resultMap>
+
+  <select id="queryByPager" resultMap="chargeBillMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+        select c.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, cb.brandId, cb.brandName, company.companyId, company.companyName,
+         m.* from t_checkin ck, t_car_brand cb,
+        t_car_color cc, t_car_model cm, t_car_plate cp, t_company company,
+        t_charge_bill c, t_maintain_record m
+        where c.maintainRecordId = m.recordId and
+        m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+        and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+        and ck.plateId = cp.plateId and ck.companyId = company.companyId
+        and c.chargeBillStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and ck.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(*) from t_charge_bill c, t_maintain_record m, t_checkin ck where c.maintainRecordId = m.recordId and m.checkinId = ck.checkinId and c.chargeBillStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and ck.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+        select count(*) from t_charge_bill c, t_maintain_record m, t_checkin ck where c.maintainRecordId = m.recordId and m.checkinId = ck.checkinId and c.chargeBillStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and ck.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="queryByPagerDisable" resultMap="chargeBillMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+        select c.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, cb.brandId, cb.brandName, company.companyId, company.companyName,
+         m.* from t_checkin ck, t_car_brand cb,
+        t_car_color cc, t_car_model cm, t_car_plate cp, t_company company,
+        t_charge_bill c, t_maintain_record m
+        where c.maintainRecordId = m.recordId and
+        m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+        and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+        and ck.plateId = cp.plateId and ck.companyId = company.companyId
+        and c.chargeBillStatus = 'N'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and ck.companyId = #{user.companyId}
+    </if>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="queryById" resultMap="chargeBillMap">
+    <![CDATA[
+        select c.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, cb.brandId, cb.brandName, company.companyId, company.companyName,
+        company.companyAddress, company.companyTel, company.companyLogo,
+         m.* from t_checkin ck, t_car_brand cb,
+        t_car_color cc, t_car_model cm, t_car_plate cp, t_company company,
+        t_charge_bill c, t_maintain_record m
+        where c.maintainRecordId = m.recordId and
+        m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+        and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+        and ck.plateId = cp.plateId and ck.companyId = company.companyId
+        and c.chargeBillStatus = 'Y' and c.chargeBillId = #{id}
+    ]]>
+  </select>
+
+  <select id="queryAll" resultMap="chargeBillMap" parameterType="com.gs.bean.User">
+    <![CDATA[
+        select c.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, cb.brandId, cb.brandName, company.companyId, company.companyName,
+         m.recordId, m.startTime, m.endTime, m.actualEndTime, m.recordCreatedTime,
+         m.pickupTime, m.recordDes from t_checkin ck, t_car_brand cb,
+        t_car_color cc, t_car_model cm, t_car_plate cp, t_company company,
+        t_charge_bill c, t_maintain_record m
+        where c.maintainRecordId = m.recordId and
+        m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+        and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+        and ck.plateId = cp.plateId and ck.companyId = company.companyId and c.chargeBillStatus = 'Y'
+        ]]>
+        <if test="companyId != '' and companyId != null">
+        and ck.companyId = #{companyId}
+        </if>
+  </select>
+
+  <insert id="insert" useGeneratedKeys="true" keyProperty="chargeBillId" parameterType="chargeBill">
+    <![CDATA[
+        insert into t_charge_bill(chargeBillId, maintainRecordId, chargeBillMoney,paymentMethod,actualPayment,chargeTime,chargeCreatedTime,chargeBillDes,chargeBillStatus,cdStatus)
+        values(uuid(), #{maintainRecordId}, #{chargeBillMoney}, #{paymentMethod},#{actualPayment},#{chargeTime}, now(), #{chargeBillDes}, 'Y', 'N')
+        ]]>
+  </insert>
+
+  <update id="update" parameterType="chargeBill">
+    <![CDATA[
+			update t_charge_bill set chargeBillId = #{chargeBillId}, maintainRecordId = #{maintainRecordId}, chargeBillMoney = #{chargeBillMoney}, paymentMethod = #{paymentMethod},
+				actualPayment = #{actualPayment}, chargeTime = #{chargeTime}, chargeCreatedTime = #{chargeCreatedTime}, chargeBillDes = #{chargeBillDes}, chargeBillStatus = #{chargeBillStatus}, cdStatus=#{cdStatus}
+				where chargeBillId = #{chargeBillId}
+		]]>
+  </update>
+
+  <update id="updateDate" parameterType="chargeBill">
+    <![CDATA[
+			update t_charge_bill set chargeTime = now() where chargeBillId = #{chargeBillId}
+		]]>
+  </update>
+
+  <update id="updateCurrent">
+    <![CDATA[
+			update t_charge_bill set cdStatus = 'Y' where chargeBillId = #{id}
+		]]>
+  </update>
+
+  <!--冻结数据-->
+  <update id="inactive" keyProperty="chargeBillId" parameterType="chargeBill">
+    <![CDATA[
+        update t_charge_bill set chargeBillStatus = 'N' where chargeBillId = #{chargeBillId}
+        ]]>
+  </update>
+
+  <!--激活数据-->
+  <update id="active" keyProperty="chargeBillId" parameterType="chargeBill">
+    <![CDATA[
+        update t_charge_bill set chargeBillStatus = 'Y' where chargeBillId = #{chargeBillId}
+        ]]>
+  </update>
+
+  <!-- 分页模糊查询 -->
+  <select id="blurredQuery" resultMap="chargeBillMap" >
+    <![CDATA[
+            select cg.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+           cm.modelId, cm.modelName, cb.brandId, cb.brandName, company.companyId, company.companyName,
+           m.recordId, m.startTime, m.endTime, m.actualEndTime, m.recordCreatedTime,
+           m.pickupTime, m.recordDes from t_charge_bill cg
+           LEFT JOIN t_maintain_record m on m.recordId = cg.maintainRecordId
+		   LEFT JOIN t_checkin ck on ck.checkinId = m.checkinId
+           LEFT JOIN t_user u on u.userId =ck.userId
+           LEFT JOIN t_car_color cc on ck.colorId =cc.colorId
+           LEFT JOIN t_car_model cm on ck.modelId = cm.modelId
+           LEFT JOIN t_car_plate cp on ck.plateId = cp.plateId
+           LEFT JOIN t_company company on ck.companyId = company.companyId
+           LEFT JOIN t_car_brand cb on ck.brandId = cb.brandId
+           where 1=1
+      ]]>
+    <if test="pager.user.companyId != '' and pager.user.companyId != null">
+      and ck.companyId = #{pager.user.companyId}
+    </if>
+    and(
+    <if test="chargeBill.maintainRecord.checkin.userName != '' and chargeBill.maintainRecord.checkin.userName != null">
+      ck.userName like '%${chargeBill.maintainRecord.checkin.userName}%'
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.userName != '' and chargeBill.maintainRecord.checkin.userName != null and
+            chargeBill.maintainRecord.checkin.companyId != '' and chargeBill.maintainRecord.checkin.companyId != null">
+      or
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.companyId != '' and chargeBill.maintainRecord.checkin.companyId != null">
+      company.companyName like '%${chargeBill.maintainRecord.checkin.companyId}%'
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.userName != '' and chargeBill.maintainRecord.checkin.userName != null and
+            chargeBill.maintainRecord.checkin.carPlate != '' and chargeBill.maintainRecord.checkin.carPlate != null">
+      or
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.carPlate != '' and chargeBill.maintainRecord.checkin.carPlate != null">
+      ck.carPlate like '%${chargeBill.maintainRecord.checkin.carPlate}%'
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.carPlate != '' and chargeBill.maintainRecord.checkin.carPlate != null and
+            chargeBill.maintainRecord.checkin.userPhone != '' and chargeBill.maintainRecord.checkin.userPhone != null">
+      or
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.userPhone != '' and chargeBill.maintainRecord.checkin.userPhone != null">
+      ck.userPhone like '%${chargeBill.maintainRecord.checkin.userPhone}%'
+    </if>
+    ) order by ck.checkinCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <!-- 分页模糊查询个数 -->
+  <select id="countByBlurred" resultType="int" >
+    <![CDATA[
+      select count(chargeBillId) from t_charge_bill cg
+           LEFT JOIN t_maintain_record m on m.recordId = cg.maintainRecordId
+		   LEFT JOIN t_checkin ck on ck.checkinId = m.checkinId
+           LEFT JOIN t_user u on u.userId =ck.userId
+           LEFT JOIN t_car_color cc on ck.colorId =cc.colorId
+           LEFT JOIN t_car_model cm on ck.modelId = cm.modelId
+           LEFT JOIN t_car_plate cp on ck.plateId = cp.plateId
+           LEFT JOIN t_company company on ck.companyId = company.companyId
+           LEFT JOIN t_car_brand cb on ck.brandId = cb.brandId
+      where 1=1
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and ck.companyId = #{user.companyId}
+    </if>
+    and(
+    <if test="chargeBill.maintainRecord.checkin.userName != '' and chargeBill.maintainRecord.checkin.userName != null">
+      ck.userName like '%${chargeBill.maintainRecord.checkin.userName}%'
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.userName != '' and chargeBill.maintainRecord.checkin.userName != null and
+            chargeBill.maintainRecord.checkin.companyId != '' and chargeBill.maintainRecord.checkin.companyId != null">
+      or
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.companyId != '' and chargeBill.maintainRecord.checkin.companyId != null">
+      company.companyName like '%${chargeBill.maintainRecord.checkin.companyId}%'
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.userName != '' and chargeBill.maintainRecord.checkin.userName != null and
+            chargeBill.maintainRecord.checkin.carPlate != '' and chargeBill.maintainRecord.checkin.carPlate != null">
+      or
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.carPlate != '' and chargeBill.maintainRecord.checkin.carPlate != null">
+      ck.carPlate like '%${chargeBill.maintainRecord.checkin.carPlate}%'
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.carPlate != '' and chargeBill.maintainRecord.checkin.carPlate != null and
+            chargeBill.maintainRecord.checkin.userPhone != '' and chargeBill.maintainRecord.checkin.userPhone != null">
+      or
+    </if>
+    <if test="chargeBill.maintainRecord.checkin.userPhone != '' and chargeBill.maintainRecord.checkin.userPhone != null">
+      ck.userPhone like '%${chargeBill.maintainRecord.checkin.userPhone}%'
+    </if>)
+  </select>
+
+  <select id="queryByOwner" resultMap="chargeBillMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+        select c.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, cb.brandId, cb.brandName, company.companyId, company.companyName,
+         m.* from t_checkin ck, t_car_brand cb,
+        t_car_color cc, t_car_model cm, t_car_plate cp, t_company company,
+        t_charge_bill c, t_maintain_record m
+        where c.maintainRecordId = m.recordId and
+        m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+        and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+        and ck.plateId = cp.plateId and ck.companyId = company.companyId
+        and c.chargeBillStatus = 'Y' and ck.userId = #{user.userId}
+    ]]>
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="countByOwner" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(*) from t_charge_bill c, t_maintain_record m, t_checkin ck where
+       c.maintainRecordId = m.recordId and m.checkinId = ck.checkinId
+       and c.chargeBillStatus = 'Y' and ck.userId = #{userId}
+    ]]>
+  </select>
+
+  <!--员工工单报表-->
+  <select id="queryByCondition" resultMap="chargeBillMap">
+    <![CDATA[
+ select sum(cb.actualPayment) as actualPayment, cb.chargeCreatedTime from t_charge_bill cb, t_user u, t_maintain_record mr, t_checkin ck where ck.userId = u.userId and cb.maintainRecordId = mr.recordId
+and ck.checkinId = mr.checkinId and cb.chargeBillStatus = 'Y' AND u.userId = #{userId} and
+cb.chargeCreatedTime >= #{start} and cb.chargeCreatedTime <= #{end}
+        ]]>
+    <if test="maintainOrFix ==0">
+    </if>
+    <if test="maintainOrFix ==1">
+      and ck.maintainOrFix = '保养'
+    </if>
+    <if test="maintainOrFix ==2">
+      and ck.maintainOrFix = '维修'
+    </if>
+    <if test="type =='year'">
+      group by date_format(cb.chargeCreatedTime, '%Y') ORDER BY cb.chargeCreatedTime ASC;
+    </if>
+    <if test="type =='quarter'">
+      group by concat(date_format(cb.chargeCreatedTime, '%Y'),FLOOR((date_format(cb.chargeCreatedTime, '%m')+2)/3)) ORDER BY cb.chargeCreatedTime ASC;
+    </if>
+    <if test="type =='month'">
+      group by date_format(cb.chargeCreatedTime, '%y-%m') ORDER BY cb.chargeCreatedTime ASC;
+    </if>
+    <if test="type =='week'">
+      group by date_format(cb.chargeCreatedTime, '%y-%m') ORDER BY cb.chargeCreatedTime ASC;
+    </if>
+    <if test="type =='day'">
+      group by date(cb.chargeCreatedTime) ORDER BY cb.chargeCreatedTime ASC;
+    </if>
+
+  </select>
+
+</mapper>

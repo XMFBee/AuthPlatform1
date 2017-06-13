@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.SupplyDAO" >
+  <resultMap id="supplyMap" type="com.gs.bean.Supply" >
+    <id column="supplyId" property="supplyId" jdbcType="VARCHAR" />
+    <result column="supplyName" property="supplyName" jdbcType="VARCHAR" />
+    <result column="supplyTel" property="supplyTel" jdbcType="VARCHAR" />
+    <result column="supplyPricipal" property="supplyPricipal" jdbcType="VARCHAR" />
+    <result column="supplyAddress" property="supplyAddress" jdbcType="VARCHAR" />
+    <result column="supplyBank" property="supplyBank" jdbcType="VARCHAR" />
+    <result column="supplyBankAccount" property="supplyBankAccount" jdbcType="VARCHAR" />
+    <result column="supplyBankNo" property="supplyBankNo" jdbcType="VARCHAR" />
+    <result column="supplyAlipay" property="supplyAlipay" jdbcType="VARCHAR" />
+    <result column="supplyWeChat" property="supplyWeChat" jdbcType="VARCHAR" />
+    <result column="supplyCreatedTime" property="supplyCreatedTime" jdbcType="TIMESTAMP" />
+    <result column="supplyTypeId" property="supplyTypeId" jdbcType="VARCHAR" />
+    <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+    <result column="supplyStatus" property="supplyStatus" jdbcType="VARCHAR" />
+
+    <association property="supplyType" javaType="com.gs.bean.SupplyType">
+      <id property="supplyTypeId" column="supplyTypeId"/>
+      <id property="supplyTypeName" column="supplyTypeName"/>
+    </association>
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id property="companyId" column="companyId"/>
+      <id property="companyName" column="companyName"/>
+    </association>
+
+  </resultMap>
+
+  <!-- 根据供应商类型名称查询是否当前数据库已经存在此名称 -->
+  <select id="queryNameByOne" resultType="int">
+    <![CDATA[
+      select count(supplyName) from t_supply where supplyName = #{supplyName}
+    ]]>
+    <if test="supplyId != null and supplyId != ''">
+      and supplyId != #{supplyId}
+    </if>
+  </select>
+
+  <select id="queryAll" resultMap="supplyMap" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select * FROM auto_platform.t_supply  s where 1=1 and s.supplyStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and s.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="queryByPager" resultMap="supplyMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+        select s.*, st.supplyTypeId, st.supplyTypeName, co.companyId, co.companyName from auto_platform.t_supply s
+        LEFT JOIN t_supply_type st on s.supplyTypeId = st.supplyTypeId
+        LEFT JOIN t_company co on s.companyId = co.companyId
+        where s.supplyStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and s.companyId = #{user.companyId}
+    </if>
+    order by s.supplyCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="queryByPagerDisable" resultMap="supplyMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+         select s.*, st.supplyTypeId, st.supplyTypeName, co.companyId, co.companyName from auto_platform.t_supply s
+        LEFT JOIN t_supply_type st on s.supplyTypeId = st.supplyTypeId
+        LEFT JOIN t_company co on s.companyId = co.companyId
+        where s.supplyStatus = 'N'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and s.companyId = #{user.companyId}
+    </if>
+    order by s.supplyCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(supplyId) from auto_platform.t_supply s where 1=1 and s.supplyStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and s.companyId = #{companyId}
+    </if>
+  </select>
+ 
+  <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(supplyId) from auto_platform.t_supply s where s.supplyStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and s.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!--
+      添加供应商信息,默认添加状态为可用状态
+  -->
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="Supply">
+    <![CDATA[
+        insert into auto_platform.t_supply
+        (supplyId, supplyName, supplyTel, supplyPricipal, supplyAddress,supplyWeChat,supplyCreatedTime,supplyTypeId,companyId,supplyAlipay,supplyBank,supplyBankAccount,supplyBankNo,supplyStatus)
+        values
+        (uuid(),#{supplyName},#{supplyTel},#{supplyPricipal},#{supplyAddress},#{supplyWeChat},CURRENT_TIMESTAMP,#{supplyTypeId},#{companyId},#{supplyAlipay},#{supplyBank},#{supplyBankAccount},#{supplyBankNo},'Y')
+        ]]>
+  </insert>
+
+  <!--
+      根据id更新供应商信息
+  -->
+  <update id="update" keyProperty="id" parameterType="java.util.Map">
+    UPDATE auto_platform.t_supply
+     SET supplyName=#{supplyName},supplyTel=#{supplyTel},supplyPricipal=#{supplyPricipal},
+          supplyAddress=#{supplyAddress},supplyWeChat=#{supplyWeChat},supplyTypeId=#{supplyTypeId},companyId=#{companyId},
+          supplyAlipay=#{supplyAlipay},supplyBank=#{supplyBank},supplyBankAccount=#{supplyBankAccount},supplyBankNo=#{supplyBankNo}WHERE supplyId=#{supplyId}
+  </update>
+
+  <!--
+      冻结供应商信息
+  -->
+  <update id="inactive" keyProperty="id" parameterType="string">
+    <![CDATA[
+        update auto_platform.t_supply set supplyStatus = 'N' where supplyId = #{supplyId}
+        ]]>
+  </update>
+
+  <!--
+      激活供应商信息
+  -->
+  <update id="active" keyProperty="id" parameterType="string">
+    <![CDATA[
+        update auto_platform.t_supply set supplyStatus = 'Y' where supplyId = #{supplyId}
+        ]]>
+  </update>
+
+  <!-- 分页模糊查询 -->
+  <select id="blurredQuery" resultMap="supplyMap" >
+    <![CDATA[
+        select s.*, st.supplyTypeId, st.supplyTypeName, co.companyId, co.companyName  from auto_platform.t_supply s
+        LEFT JOIN t_supply_type st on s.supplyTypeId = st.supplyTypeId
+        LEFT JOIN t_company co on s.companyId = co.companyId
+        where 1=1
+      ]]>
+    <if test="pager.user.companyId != '' and pager.user.companyId !=null">
+      and s.companyId = #{pager.user.companyId}
+    </if>
+    and(
+    <if test="supply.supplyName != '' and supply.supplyName != null">
+      s.supplyName like '%${supply.supplyName}%'
+    </if>
+    <if test="supply.supplyName != '' and supply.supplyName != null and
+            supply.companyId != '' and supply.companyId != null">
+      or
+    </if>
+    <if test="supply.companyId != '' and supply.companyId != null">
+      co.companyName like '%${supply.companyId}%'
+    </if>
+    <if test="supply.supplyName != '' and supply.supplyName != null and
+            supply.supplyTypeId != '' and supply.supplyTypeId != null">
+      or
+    </if>
+    <if test="supply.supplyTypeId != '' and supply.supplyTypeId != null">
+      st.supplyTypeName like '%${supply.supplyTypeId}%'
+    </if>
+    )order by s.supplyCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <!-- 分页模糊查询个数 -->
+  <select id="countByBlurred" resultType="int">
+    <![CDATA[
+      select count(supplyId) from auto_platform.t_supply s
+      LEFT JOIN t_supply_type st on s.supplyTypeId = st.supplyTypeId
+      LEFT JOIN t_company co on s.companyId = co.companyId
+      where 1=1
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and s.companyId = #{user.companyId}
+    </if>
+    and(
+    <if test="supply.supplyName != '' and supply.supplyName != null">
+      s.supplyName like '%${supply.supplyName}%'
+    </if>
+    <if test="supply.supplyName != '' and supply.supplyName != null and
+            supply.companyId != '' and supply.companyId != null">
+      or
+    </if>
+    <if test="supply.companyId != '' and supply.companyId != null">
+      co.companyName like '%${supply.companyId}%'
+    </if>
+    <if test="supply.supplyName != '' and supply.supplyName != null and
+            supply.supplyTypeId != '' and supply.supplyTypeId != null">
+      or
+    </if>
+    <if test="supply.supplyTypeId != '' and supply.supplyTypeId != null">
+      st.supplyTypeName like '%${supply.supplyTypeId}%'
+    </if>)
+    </select>
+
+</mapper>

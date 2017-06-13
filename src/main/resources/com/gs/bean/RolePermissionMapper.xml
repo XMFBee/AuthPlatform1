@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gs.dao.RolePermissionDAO">
+
+  <select id="queryAllPermissionByRoleName" parameterType="string"  resultType="string">
+    select name from t_permission where Id in (select permissionId from t_role_permission where roleId in (select Id from t_role where name = #{roleName}))
+  </select>
+
+  <select id="queryPermissionById" resultMap="com.gs.dao.PermissionDAO.permissionMap">
+    select * from t_permission p where permissionId in (select permissionId from t_role_permission rp where roleId in (select r.roleId from t_role r where roleId = #{id}))
+  </select>
+
+  <delete id="removePermission">
+    delete from t_role_permission where roleId = #{roleId} and permissionId = #{permissionId}
+  </delete>
+
+  <insert id="addPermission">
+    insert into t_role_permission(rpId, roleId,permissionId,rpCreatedTime) values(uuid(),#{roleId}, #{permissionId}, now())
+  </insert>
+
+
+  <select id="queryPermissions" resultType="permission">
+    select per.* from
+    t_role role LEFT JOIN t_role_permission rp on role.roleId = rp.roleId
+    LEFT JOIN t_permission per on rp.permissionId = per.permissionId
+    left join t_module module on per.moduleId = module.moduleId
+    <where>
+      role.roleId = #{roleId}
+      <if test="roleStatus != null">
+        and role.roleStatus = #{roleStatus}
+      </if>
+      and per.permissionStatus = 'Y'
+    </where>
+  </select>
+
+  <insert id="insertList"  parameterType="java.util.List">
+    insert into t_role_permission(rpId, roleId,permissionId,rpCreatedTime) values
+    <foreach collection="permissions" item="permissionId" index="index" separator=",">
+      (uuid(),#{roleId}, #{permissionId}, now())
+    </foreach>
+  </insert>
+
+</mapper>

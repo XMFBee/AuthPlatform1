@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.RoleDAO" >
+  <resultMap id="roleMap" type="com.gs.bean.Role" >
+    <id column="roleId" property="roleId" jdbcType="VARCHAR" />
+    <result column="roleName" property="roleName" jdbcType="VARCHAR" />
+    <result column="roleDes" property="roleDes" jdbcType="VARCHAR" />
+    <result column="roleStatus" property="roleStatus" jdbcType="VARCHAR" />
+  </resultMap>
+  <select id="queryAll" resultMap="roleMap" parameterType="hashMap" >
+    select * from t_role r
+    <where>
+        1 = 1
+        <if test="isMana != null">
+            and r.roleName like "%系统%"
+        </if>
+        <if test="isCompMana!= null">
+            and r.roleName not like "%系统%"
+            and r.roleName != "车主"
+        </if>
+        <if test="roleStatus!=null">
+         and r.roleStatus = #{roleStatus}
+      </if>
+    </where>
+  </select>
+
+
+    <select id = "queryByPager" resultMap="roleMap">
+          select * from t_role r
+          <where>
+              <if test = "roleStatus != null">
+                  r.roleStatus = #{roleStatus}
+              </if>
+          </where>
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <select id = "count" resultType="int">
+      select count(r.roleId) from t_role r
+      <where>
+          <if test = "roleStatus!=null" >
+              r.roleStatus = #{roleStatus}
+          </if>
+      </where>
+    </select>
+
+    <select id = "queryByName" resultType="role" parameterType="string">
+        select * from t_role rol where rol.roleName = #{roleName}
+    </select>
+
+  <insert id="insert" parameterType="role">
+    insert into t_role(roleId, roleName, roleDes, roleStatus)
+						values(uuid(),#{roleName}, #{roleDes}, 'Y');
+  </insert>
+  
+  <update id="update" parameterType="role">
+    update t_role set roleDes =#{roleDes}
+     where roleId = #{roleId}
+  </update>
+
+    <update id="updateStatus" parameterType="role">
+        update t_role set roleStatus = #{roleStatus}
+        where roleId = #{roleId}
+    </update>
+
+
+
+
+</mapper>

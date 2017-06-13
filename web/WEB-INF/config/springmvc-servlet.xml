@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <context:component-scan base-package="com.gs.controller"/>
+
+    <mvc:annotation-driven />
+    <bean class="org.springframework.format.support.FormattingConversionServiceFactoryBean"></bean>
+
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping"/>
+
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/views/"></property>
+        <property name="suffix" value=".jsp"></property>
+    </bean>
+
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="defaultEncoding" value="UTF-8" />
+        <property name="maxUploadSize" value="209715200" />
+        <property name="maxInMemorySize" value="40960" />
+    </bean>
+
+
+    <mvc:resources location="/static/" mapping="/static/**"/>
+    <mvc:resources location="/static/img/" mapping="/static/img/**"/>
+    <mvc:resources location="/static/fonts/" mapping="/static/fonts/**"/>
+    <mvc:resources location="/static/css/" mapping="/static/css/**"/>
+    <mvc:resources location="/static/js/" mapping="/static/js/**"/>
+    <mvc:resources location="/static/uploads/" mapping="/static/uploads/**" />
+    <mvc:resources location="/static/jsp/" mapping="/static/jsp/**"/>
+    <mvc:resources location="/static/scripts/" mapping="/static/scripts/**"/>
+    <mvc:resources location="/skin/" mapping="/skin/**"/>
+
+    <bean id="mappingJacksonHttpMessageConverter"
+          class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+        <property name="supportedMediaTypes">
+            <list>
+                <value>text/plain;charset=UTF-8</value>
+                <value>application/json;charset=UTF-8</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <ref bean="mappingJacksonHttpMessageConverter"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                <!-- 登录 -->
+                <prop key="org.apache.shiro.authz.UnauthenticatedException">
+                    redirect:/user/redirectLogin
+                </prop>
+                <!-- 授权 -->
+                <prop key="org.apache.shiro.authz.UnauthorizedException">
+                    redirect:/error/serverError
+                </prop>
+            </props>
+        </property>
+    </bean>
+
+    <!-- shiro开启注解 -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" depends-on="lifecycleBeanPostProcessor">
+        <property name="proxyTargetClass" value="true"></property>
+    </bean>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"></property>
+    </bean>
+</beans>

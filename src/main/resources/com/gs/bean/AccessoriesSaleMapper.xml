@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.AccessoriesSaleDAO" >
+  <resultMap id="AccessoriesSaleMap" type="com.gs.bean.AccessoriesSale" >
+    <id column="accSaleId" property="accSaleId" jdbcType="VARCHAR" />
+    <result column="accId" property="accId" jdbcType="VARCHAR" />
+    <result column="accSaledTime" property="accSaledTime" jdbcType="TIMESTAMP" />
+    <result column="accSaleCount" property="accSaleCount" jdbcType="INTEGER" />
+    <result column="accSalePrice" property="accSalePrice" jdbcType="DOUBLE" />
+    <result column="accSaleTotal" property="accSaleTotal" jdbcType="DOUBLE" />
+    <result column="accSaleDiscount" property="accSaleDiscount" jdbcType="DOUBLE" />
+    <result column="accSaleMoney" property="accSaleMoney" jdbcType="DOUBLE" />
+    <result column="accSaleCreatedTime" property="accSaleCreatedTime" jdbcType="TIMESTAMP" />
+    <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+    <result column="accSaleStatus" property="accSaleStatus" jdbcType="VARCHAR" />
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id property="companyId" column="companyId"/>
+      <id property="companyName" column="companyName"/>
+    </association>
+
+    <association property="accessories" javaType="com.gs.bean.Accessories">
+      <id property="accId" column="accId"/>
+      <id property="accName" column="accName"/>
+    </association>
+  </resultMap>
+
+  <!--
+    查询所有的销售记录
+-->
+  <select id="queryAll" resultMap="AccessoriesSaleMap" parameterType="com.gs.bean.User">
+    <![CDATA[
+          select * FROM auto_platform.t_accessories_sale ac where 1=1 and ac.accSaleStatus = 'Y'
+        ]]>
+    <if test="companyId != '' and companyId !=null">
+      and ac.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!-- 分页查询 -->
+  <select id="queryByPager" resultMap="AccessoriesSaleMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+      select aca.*,cp.companyId,cp.companyName,ac.accId,ac.accName
+      from auto_platform.t_accessories_sale aca
+      LEFT JOIN auto_platform.t_company cp ON aca.companyId=cp.companyId
+      LEFT JOIN auto_platform.t_accessories ac ON aca.accId=ac.accId
+      where aca.accSaleStatus = 'Y'
+    ]]>
+    <if test="user.companyId != '' and user.companyId != null">
+      and aca.companyId = #{user.companyId}
+    </if>
+    order by aca.accSaleCreatedTime Desc
+    limit #{beginIndex}, #{pageSize};
+  </select>
+
+  <!--查询有多少配件销售信息-->
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(accSaleId) from auto_platform.t_accessories_sale u WHERE u.accSaleStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and u.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!--
+      添加销售记录
+  -->
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="AccessoriesSale">
+    <![CDATA[
+            INSERT INTO auto_platform.t_accessories_sale
+            (accSaleId,accId, companyId, accSaledTime, accSaleCount,accSalePrice,accSaleTotal,accSaleDiscount, accSaleMoney,accSaleCreatedTime,accSaleStatus)
+            VALUES
+            (uuid(),#{accId},#{companyId},#{accSaledTime},abs(#{accSaleCount}),abs(#{accSalePrice}),abs(#{accSaleTotal}),abs(#{accSaleDiscount}),abs(#{accSaleMoney}) ,CURRENT_TIMESTAMP ,'Y')
+        ]]>
+  </insert>
+
+  <!--
+      更新销售记录信息
+  -->
+  <update id="update" keyProperty="id" parameterType="java.util.Map">
+    UPDATE auto_platform.t_accessories_sale
+    SET companyId=#{companyId},accId=#{accId}, accSaledTime=#{accSaledTime},
+    accSaleCount=abs(#{accSaleCount}),accSalePrice=abs(#{accSalePrice}),
+    accSaleTotal=abs(#{accSaleTotal}),accSaleDiscount=abs(#{accSaleDiscount}),
+    accSaleMoney=abs(#{accSaleMoney}) WHERE accSaleId=#{accSaleId}
+  </update>
+
+  <!--
+      根据id删除对应的配件销售记录
+  -->
+  <delete id="deleteById">
+    DELETE FROM auto_platform.t_accessories_sale WHERE accSaleId=#{accSaleId}
+  </delete>
+
+
+  <!--
+      冻结配件销售信息
+  -->
+  <update id="inactive" keyProperty="id" parameterType="string">
+    <![CDATA[
+        update auto_platform.t_accessories_sale set accSaleStatus = 'N' where accSaleId = #{accSaleId}
+        ]]>
+  </update>
+
+  <!--
+      激活配件销售信息
+  -->
+  <update id="active" keyProperty="id" parameterType="string">
+    <![CDATA[
+        update auto_platform.t_accessories_sale set accSaleStatus = 'Y' where accSaleId = #{accSaleId}
+        ]]>
+  </update>
+
+  <select id="queryByPagerDisable" resultMap="AccessoriesSaleMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       SELECT asa.*,cp.companyName,cp.companyId,ac.accId,ac.accName FROM auto_platform.t_accessories_sale asa
+       LEFT JOIN auto_platform.t_company cp on cp.companyId=asa.companyId
+       LEFT JOIN auto_platform.t_accessories ac on ac.accId=asa.accId
+       WHERE accSaleStatus='N'
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and asa.companyId = #{user.companyId}
+    </if>
+    order by asa.accSaleCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(accSaleId) from auto_platform.t_accessories_sale asa where asa.accSaleStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId !=null">
+      and asa.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!-- 分页模糊查询 -->
+  <select id="blurredQuery" resultMap="AccessoriesSaleMap" >
+    <![CDATA[
+     select asa.*,cp.companyId,cp.companyName,ac.accId,ac.accName from auto_platform.t_accessories_sale asa
+     LEFT JOIN auto_platform.t_company cp on asa.companyId=cp.companyId
+     LEFT JOIN auto_platform.t_accessories ac on asa.accId=ac.accId
+     where 1=1
+    ]]>
+    <if test="pager.user.companyId != '' and pager.user.companyId !=null">
+      and asa.companyId = #{pager.user.companyId}
+    </if>
+    and (
+    <if test="accSale.companyId != '' and accSale.companyId != null">
+      cp.companyName like '%${accSale.companyId}%'
+    </if>
+    <if test="accSale.companyId != '' and accSale.companyId != null and
+            accSale.accId != '' and accSale.accId != null">
+      OR
+    </if>
+    <if test="accSale.accId!='' and accSale.accId!= null">
+      ac.accName LIKE '%${accSale.accId}%'
+    </if>
+    )ORDER by asa.accSaleCreatedTime DESC
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <!-- 分页模糊查询个数 -->
+  <select id="countByBlurred" resultType="int" >
+    <![CDATA[
+     select count(accSaleId) FROM auto_platform.t_accessories_sale asa
+     LEFT JOIN auto_platform.t_company cp on cp.companyId=asa.companyId
+     LEFT JOIN auto_platform.t_accessories ac on ac.accId=asa.accId
+     where 1=1
+    ]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and asa.companyId = #{user.companyId}
+    </if>
+    and (
+    <if test="accessoriesSale.companyId != '' and accessoriesSale.companyId != null">
+      cp.companyName like '%${accessoriesSale.companyId}%'
+    </if>
+    <if test="accessoriesSale.companyId != '' and accessoriesSale.companyId != null and
+            accessoriesSale.accId != '' and accessoriesSale.accId != null">
+      OR
+    </if>
+    <if test="accessoriesSale.accId!='' and accessoriesSale.accId!= null">
+      ac.accName LIKE '%${accessoriesSale.accId}%'
+    </if>)
+  </select>
+</mapper>

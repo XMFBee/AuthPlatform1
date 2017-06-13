@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.ComplaintDAO" >
+  <resultMap id="BaseResultMap" type="complaint" >
+    <id column="complaintId" property="complaintId" jdbcType="VARCHAR" />
+    <result column="userId" property="userId" jdbcType="VARCHAR" />
+    <result column="complaintContent" property="complaintContent" jdbcType="VARCHAR" />
+    <result column="complaintCreatedTime" property="complaintCreatedTime" jdbcType="TIMESTAMP" />
+    <result column="complaintReply" property="complaintReply" jdbcType="VARCHAR" />
+    <result column="complaintReplyTime" property="complaintReplyTime" jdbcType="TIMESTAMP" />
+    <result column="complaintReplyUser" property="complaintReplyUser" jdbcType="VARCHAR" />
+    <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+
+    <association property="user" javaType="com.gs.bean.User">
+      <id column="user_id" property="userId"></id>
+      <result column="user_name" property="userName"></result>
+    </association>
+
+    <association property="admin" javaType="com.gs.bean.User">
+      <id column="admin_id" property="userId"></id>
+      <result column="admin_name" property="userName"></result>
+    </association>
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id column="company_id" property="companyId"></id>
+      <result column="company_name" property="companyName"></result>
+      <result column="company_address" property="companyAddress"></result>
+      <result column="company_tel" property="companyTel"></result>
+    </association>
+  </resultMap>
+
+  <select id="queryByPager" resultMap="BaseResultMap" parameterType="com.gs.common.bean.Pager">
+    SELECT c.*,u.userId AS user_id,u.userName AS user_name,
+    u2.userId AS admin_id,u2.userName AS admin_name,
+    co.companyId AS company_id,co.companyName AS company_name,
+    co.companyAddress AS company_address,co.companyTel AS company_tel
+    FROM t_company co,t_complaint c
+    LEFT JOIN t_user u ON c.userId = u.userId
+    LEFT  JOIN t_user u2 ON c.complaintReplyUser = u2.userId
+    WHERE c.companyId = co.companyId
+    <if test="user.companyId != null and user.companyId != ''">
+      and c.companyId = #{user.companyId}
+    </if>
+    order by c.complaintCreatedTime Desc
+    limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+    SELECT count(*) FROM t_company co,t_complaint c
+    LEFT JOIN t_user u ON c.userId = u.userId
+    LEFT  JOIN t_user u2 ON c.complaintReplyUser = u2.userId
+    WHERE c.companyId = co.companyId
+    <if test="companyId != null and companyId != ''">
+      and c.companyId = #{companyId}
+    </if>
+  </select>
+
+  <select id="queryByPagerName" resultMap="BaseResultMap">
+    SELECT c.*,u.userId AS user_id,u.userName AS user_name,
+    u2.userId AS admin_id,u2.userName AS admin_name,
+    co.companyId AS company_id,co.companyName AS company_name,
+    co.companyAddress AS company_address,co.companyTel AS company_tel
+    FROM t_company co,t_complaint c
+    LEFT JOIN t_user u ON c.userId = u.userId
+    LEFT  JOIN t_user u2 ON c.complaintReplyUser = u2.userId
+    WHERE c.companyId = co.companyId
+    <if test="pager.user.companyId != null and pager.user.companyId != ''">
+      and c.companyId = #{pager.user.companyId}
+    </if>
+    <if test="complaint.userId != null and complaint.userId != ''">
+      and u.userName like concat('%',#{complaint.userId},'%')
+    </if>
+    <if test="complaint.complaintReplyUser != null and complaint.complaintReplyUser != ''">
+      and u2.userName like concat('%',#{complaint.complaintReplyUser},'%')
+    </if>
+    <if test="complaint.complaintContent != null and complaint.complaintContent != ''">
+      and c.complaintContent like concat('%',#{complaint.complaintContent},'%')
+    </if>
+    <if test="complaint.complaintReply != null and complaint.complaintReply != ''">
+      and c.complaintReply like concat('%',#{complaint.complaintReply},'%')
+    </if>
+    order by c.complaintCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countName"  resultType="int">
+    SELECT count(*) FROM t_company co,t_complaint c
+    LEFT JOIN t_user u ON c.userId = u.userId
+    LEFT  JOIN t_user u2 ON c.complaintReplyUser = u2.userId
+    WHERE c.companyId = co.companyId
+    <if test="user.companyId != null and user.companyId != ''">
+      and c.companyId = #{user.companyId}
+    </if>
+    <if test="complaint.userId != null and complaint.userId != ''">
+      and u.userName like concat('%',#{complaint.userId},'%')
+    </if>
+    <if test="complaint.complaintReplyUser != null and complaint.complaintReplyUser != ''">
+      and u2.userName like concat('%',#{complaint.complaintReplyUser},'%')
+    </if>
+    <if test="complaint.complaintContent != null and complaint.complaintContent != ''">
+      and c.complaintContent like concat('%',#{complaint.complaintContent},'%')
+    </if>
+    <if test="complaint.complaintReply != null and complaint.complaintReply != ''">
+      and c.complaintReply like concat('%',#{complaint.complaintReply},'%')
+    </if>
+  </select>
+
+  <update id="update" parameterType="complaint">
+    update t_complaint set complaintReply=#{complaintReply},complaintReplyTime=now(),complaintReplyUser=#{complaintReplyUser} where complaintId = #{complaintId}
+  </update>
+
+  <insert id="insert" parameterType="complaint">
+    insert into t_complaint(complaintId,userId,complaintContent,complaintCreatedTime,companyId) values(uuid(),#{userId},#{complaintContent},now(),#{companyId})
+  </insert>
+
+  <select id="queryByPagerComplaintUser" resultMap="BaseResultMap">
+    SELECT c.*,u.userId AS user_id,u.userName AS user_name,
+    u2.userId AS admin_id,u2.userName AS admin_name,
+    co.companyId AS company_id,co.companyName AS company_name,
+    co.companyAddress AS company_address,co.companyTel AS company_tel
+    FROM t_company co,t_complaint c
+    LEFT JOIN t_user u ON c.userId = u.userId
+    LEFT  JOIN t_user u2 ON c.complaintReplyUser = u2.userId
+    WHERE c.companyId = co.companyId and u.userId = #{userId}
+    order by c.complaintCreatedTime Desc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countComplaintUser" resultType="int">
+   SELECT count(*) FROM t_company co,t_complaint c
+    LEFT JOIN t_user u ON c.userId = u.userId
+    LEFT  JOIN t_user u2 ON c.complaintReplyUser = u2.userId
+    WHERE c.companyId = co.companyId and u.userId = #{userId}
+  </select>
+
+</mapper>

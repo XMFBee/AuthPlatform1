@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.ModuleDAO" >
+  <resultMap id="moduleMap" type="com.gs.bean.Module" >
+    <id column="moduleId" property="moduleId" jdbcType="VARCHAR" />
+    <result column="moduleName" property="moduleName" jdbcType="VARCHAR" />
+    <result column="moduleDes" property="moduleDes" jdbcType="VARCHAR" />
+    <result column="moduleStatus" property="moduleStatus" jdbcType="VARCHAR" />
+      <association javaType="permission" property="permissions"></association>
+  </resultMap>
+
+  <select id="queryAll" resultType="module">
+      select * from t_module m
+  </select>
+
+  <insert id="insert" parameterType="module" >
+    insert into t_module(moduleId, moduleName, moduleDes, moduleStatus)
+						values(#{moduleId}, #{moduleName}, #{moduleDes}, 'Y')
+  </insert>
+  
+  <update id="update" parameterType="module" >
+    update t_module set moduleName = #{moduleName}, moduleDes = #{moduleDes} where moduleId = #{moduleId};
+  </update>
+
+  <delete id="delete" parameterType="module">
+    delete from t_module where moduleId = #{moduleId}
+  </delete>
+
+  <update id = "updPermissions" >
+    update t_permission set moduleId = #{newModuleId} where moduleId = #{oldModuleId}
+  </update>
+
+  <update id = "updPermission">
+    update t_permission set moduleId = #{moduleId} where permissionId = #{permissionId}
+  </update>
+
+
+  <select id="countByModuleName" resultType="int">
+    select count(moduleId) from t_module where moduleName = #{moduleName}
+     <if test="moduleId!=null">
+      and moduleId!=#{moduleId}
+     </if>
+     and moduleStatus = "Y"
+  </select>
+
+</mapper>

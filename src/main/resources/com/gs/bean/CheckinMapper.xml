@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.CheckinDAO" >
+  <resultMap id="checkinMap" type="com.gs.bean.Checkin" >
+    <id column="checkinId" property="checkinId" jdbcType="VARCHAR" />
+    <result column="userId" property="userId" jdbcType="VARCHAR" />
+    <result column="appointmentId" property="appointmentId" jdbcType="VARCHAR" />
+    <result column="userName" property="userName" jdbcType="VARCHAR" />
+    <result column="userPhone" property="userPhone" jdbcType="VARCHAR" />
+    <result column="brandId" property="brandId" jdbcType="VARCHAR" />
+    <result column="colorId" property="colorId" jdbcType="VARCHAR" />
+    <result column="modelId" property="modelId" jdbcType="VARCHAR" />
+    <result column="plateId" property="plateId" jdbcType="VARCHAR" />
+    <result column="carPlate" property="carPlate" jdbcType="VARCHAR" />
+    <result column="arriveTime" property="arriveTime" jdbcType="TIMESTAMP" />
+    <result column="carMileage" property="carMileage" jdbcType="DOUBLE" />
+    <result column="carThings" property="carThings" jdbcType="VARCHAR" />
+    <result column="intactDegrees" property="intactDegrees" jdbcType="VARCHAR" />
+    <result column="userRequests" property="userRequests" jdbcType="VARCHAR" />
+    <result column="maintainOrFix" property="maintainOrFix" jdbcType="VARCHAR" />
+    <result column="checkinCreatedTime" property="checkinCreatedTime" jdbcType="TIMESTAMP" />
+    <result column="companyId" property="companyId" jdbcType="VARCHAR" />
+    <result column="checkinStatus" property="checkinStatus" jdbcType="VARCHAR" />
+    <result column="nowOil" property="nowOil" jdbcType="DOUBLE" />
+    <result column="ifClearCar" property="ifClearCar" jdbcType="VARCHAR" />
+
+    <association property="brand" javaType="com.gs.bean.CarBrand">
+      <id property="brandId" column="brandId"/>
+      <id property="brandName" column="brandName"/>
+    </association>
+
+    <association property="color" javaType="com.gs.bean.CarColor">
+      <id property="colorId" column="colorId"/>
+      <id property="colorName" column="colorName"/>
+    </association>
+
+    <association property="plate" javaType="com.gs.bean.CarPlate">
+      <id property="plateId" column="plateId"/>
+      <id property="plateName" column="plateName"/>
+    </association>
+
+    <association property="model" javaType="com.gs.bean.CarModel">
+      <id property="modelId" column="modelId"/>
+      <id property="modelName" column="modelName"/>
+    </association>
+
+    <association property="company" javaType="com.gs.bean.Company">
+      <id property="companyId" column="companyId"/>
+      <id property="companyName" column="companyName"/>
+    </association>
+
+  </resultMap>
+  <select id="queryByPager" resultMap="checkinMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, company.companyId,
+        company.companyName, cb.brandId, cb.brandName from t_checkin ck
+       LEFT JOIN t_car_color cc on ck.colorId =cc.colorId
+       LEFT JOIN t_car_model cm on ck.modelId = cm.modelId
+       LEFT JOIN t_car_plate cp on ck.plateId = cp.plateId
+       LEFT JOIN t_company company on ck.companyId = company.companyId
+       LEFT JOIN t_car_brand cb on ck.brandId = cb.brandId
+       where ck.checkinStatus = 'Y'
+       ]]>
+       <if test="user.companyId != '' and user.companyId != null">
+       and ck.companyId = #{user.companyId}
+       </if>
+       order by ck.checkinCreatedTime Desc
+       limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <select id="count" resultType="int" parameterType="com.gs.bean.User">
+     <![CDATA[
+      select count(checkinId) from t_checkin ck where ck.checkinStatus = 'Y'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and ck.companyId = #{companyId}
+    </if>
+  </select>
+
+  <insert id="insert"  parameterType="checkin">
+    <![CDATA[
+			insert into t_checkin(checkinId, userId, appointmentId, userName, userPhone, brandId, colorId,
+				modelId, plateId, carPlate, arriveTime, carMileage, carThings, intactDegrees, userRequests,
+				maintainOrFix, checkinCreatedTime, companyId, checkinStatus, ifClearCar, nowOil)
+				values(#{checkinId}, #{userId}, #{appointmentId}, #{userName}, #{userPhone}, #{brandId}, #{colorId},
+				#{modelId}, #{plateId}, #{carPlate}, #{arriveTime}, #{carMileage}, #{carThings}, #{intactDegrees}, #{userRequests},
+				#{maintainOrFix}, now(), #{companyId}, 'Y', #{ifClearCar}, #{nowOil})
+		]]>
+  </insert>
+
+  <update id="update" parameterType="checkin">
+    <![CDATA[
+			update t_checkin set userId = #{userId}, appointmentId = #{appointmentId}, userName = #{userName}, userPhone = #{userPhone},
+				brandId = #{brandId}, colorId = #{colorId}, modelId = #{modelId}, plateId = #{plateId}, carPlate = #{carPlate},
+				arriveTime = #{arriveTime}, carMileage = #{carMileage}, carThings = #{carThings}, intactDegrees = #{intactDegrees}, userRequests = #{userRequests},
+				maintainOrFix = #{maintainOrFix}, checkinCreatedTime = #{checkinCreatedTime}, companyId = #{companyId}, checkinStatus = #{checkinStatus}, ifClearCar = #{ifClearCar}, nowOil = #{nowOil} where checkinId = #{checkinId}
+		]]>
+  </update>
+
+  <!-- 分页查询禁用 -->
+  <select id="queryByPagerDisable" resultMap="checkinMap" parameterType="com.gs.common.bean.Pager">
+    <![CDATA[
+       select ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, company.companyId,
+        company.companyName, cb.brandId, cb.brandName from t_checkin ck
+       LEFT JOIN t_car_color cc on ck.colorId =cc.colorId
+       LEFT JOIN t_car_model cm on ck.modelId = cm.modelId
+       LEFT JOIN t_car_plate cp on ck.plateId = cp.plateId
+       LEFT JOIN t_company company on ck.companyId = company.companyId
+       LEFT JOIN t_car_brand cb on ck.brandId = cb.brandId
+       where ck.checkinStatus = 'N'
+       ]]>
+       <if test="user.companyId != '' and user.companyId != null">
+       and ck.companyId = #{user.companyId}
+       </if>
+       order by ck.checkinCreatedTime Desc
+       limit #{beginIndex}, #{pageSize}
+  </select>
+
+  <!-- 分页查询禁用个数 -->
+  <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+    <![CDATA[
+      select count(checkinId) from t_checkin ck where ck.checkinStatus = 'N'
+    ]]>
+    <if test="companyId != '' and companyId != null">
+      and ck.companyId = #{companyId}
+    </if>
+  </select>
+
+  <!-- 分页模糊查询 -->
+  <select id="blurredQuery" resultMap="checkinMap">
+    <![CDATA[
+           select ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName, company.companyId,
+            company.companyName, cb.brandId, cb.brandName from t_checkin ck
+           LEFT JOIN t_user u on u.userId =ck.userId
+           LEFT JOIN t_car_color cc on ck.colorId =cc.colorId
+           LEFT JOIN t_car_model cm on ck.modelId = cm.modelId
+           LEFT JOIN t_car_plate cp on ck.plateId = cp.plateId
+           LEFT JOIN t_company company on ck.companyId = company.companyId
+           LEFT JOIN t_car_brand cb on ck.brandId = cb.brandId
+           where 1=1
+           ]]>
+           <if test="pager.user.companyId != '' and pager.user.companyId != null">
+              and ck.companyId = #{pager.user.companyId}
+            </if>
+            and(
+            <if test="checkin.userName != '' and checkin.userName != null">
+              ck.userName like '%${checkin.userName}%'
+            </if>
+            <if test="checkin.userName != '' and checkin.userName != null and
+            checkin.companyId != '' and checkin.companyId != null">
+              or
+            </if>
+            <if test="checkin.companyId != '' and checkin.companyId != null">
+              company.companyName like '%${checkin.companyId}%'
+            </if>
+            <if test="checkin.userName != '' and checkin.userName != null and
+            checkin.carPlate != '' and checkin.carPlate != null">
+              or
+            </if>
+            <if test="checkin.carPlate != '' and checkin.carPlate != null">
+              ck.carPlate like '%${checkin.carPlate}%'
+            </if>
+            <if test="checkin.carPlate != '' and checkin.carPlate != null and
+            checkin.userPhone != '' and checkin.userPhone != null">
+              or
+            </if>
+            <if test="checkin.userPhone != '' and checkin.userPhone != null">
+              ck.userPhone like '%${checkin.userPhone}%'
+            </if>
+            ) order by ck.checkinCreatedTime Desc
+           limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <!-- 分页模糊查询个数 -->
+  <select id="countByBlurred" resultType="int" >
+    <![CDATA[
+      select count(checkinId) from t_checkin ck
+      LEFT JOIN t_user u on u.userId =ck.userId
+      LEFT JOIN t_car_color cc on ck.colorId =cc.colorId
+      LEFT JOIN t_car_model cm on ck.modelId = cm.modelId
+      LEFT JOIN t_car_plate cp on ck.plateId = cp.plateId
+      LEFT JOIN t_company company on ck.companyId = company.companyId
+      LEFT JOIN t_car_brand cb on ck.brandId = cb.brandId
+      where 1=1
+      ]]>
+      <if test="user.companyId != '' and user.companyId != null">
+              and ck.companyId = #{user.companyId}
+      </if>
+      and(
+      <if test="checkin.userName != '' and checkin.userName != null">ck.userName like '%${checkin.userName}%'
+      </if>
+      <if test="checkin.userName != '' and checkin.userName != null and
+      checkin.companyId != '' and checkin.companyId != null">
+        or
+      </if>
+      <if test="checkin.companyId != '' and checkin.companyId != null">
+          company
+          .companyName like '%${checkin.companyId}%'
+      </if>
+      <if test="checkin.userName != '' and checkin.userName != null and
+      checkin.carPlate != '' and checkin.carPlate != null">
+        or
+      </if>
+      <if test="checkin.carPlate != '' and checkin.carPlate != null">
+        ck.carPlate like '%${checkin.carPlate}%'
+      </if>
+      <if test="checkin.carPlate != '' and checkin.carPlate != null and
+      checkin.userPhone != '' and checkin.userPhone != null">
+        or
+      </if>
+      <if test="checkin.userPhone != '' and checkin.userPhone != null">
+        ck.userPhone like '%${checkin.userPhone}%'
+      </if>)
+  </select>
+
+  <!--冻结数据-->
+  <update id="inactive" keyProperty="checkinId" parameterType="Checkin">
+    <![CDATA[
+         update t_checkin set checkinStatus = 'N' where checkinId = #{checkinId}
+        ]]>
+  </update>
+
+  <!--激活数据-->
+  <update id="active" keyProperty="checkinId" parameterType="Checkin">
+    <![CDATA[
+        update t_checkin set checkinStatus = 'Y' where checkinId = #{checkinId}
+        ]]>
+  </update>
+
+    <!-- 根据注册的手机号查询是否有登记记录为此手机号的登记记录 -->
+    <select id="queryByPhone" resultMap="checkinMap">
+        <![CDATA[
+       select ck.* from t_checkin ck where ck.userPhone = #{userPhone}
+    ]]>
+    </select>
+    <!-- 查询出有的登记id进行批量更新 -->
+    <update id="updateUserIds">
+        <![CDATA[
+        update t_checkin set userId=#{userId} where checkinId in (${chIds})
+        ]]>
+    </update>
+</mapper>

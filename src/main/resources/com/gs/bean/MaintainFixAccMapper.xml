@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.MaintainFixAccDAO" >
+  <resultMap id="maintainFixAccMap" type="com.gs.bean.MaintainFixAcc" >
+    <id column="mainAccId" property="mainAccId" jdbcType="VARCHAR" />
+    <result column="maintainId" property="maintainId" jdbcType="VARCHAR" />
+    <result column="accId" property="accId" jdbcType="VARCHAR" />
+    <result column="accCount" property="accCount" jdbcType="INTEGER" />
+    <association property="company" javaType="com.gs.bean.Company">
+      <id property="companyId" column="companyId"/>
+      <result property="companyName" column="companyName"/>
+    </association>
+    <association property="accessories" javaType="com.gs.bean.Accessories">
+      <id property="accId" column="accId"/>
+      <result property="accName" column="accName"/>
+    </association>
+    <association property="maintainFix" javaType="com.gs.bean.MaintainFix">
+      <id property="maintainId" column="maintainId"/>
+      <result property="maintainName" column="maintainName"/>
+      <result property="maintainHour" column="maintainHour"/>
+      <result property="maintainMoney" column="maintainMoney"/>
+      <result property="maintainManHourFee" column="maintainManHourFee"/>
+      <result property="maintainDes" column="maintainDes"/>
+    </association>
+  </resultMap>
+
+  <select id="queryByRecord" resultMap="maintainFixAccMap">
+    select mfa.*,mf.*,a.* from t_maintain_fix_acc mfa,t_maintain_fix mf, t_accessories a where mfa.maintainId = mf.maintainId and mfa.accId = a.accId and mfa.maintainId in (${fixId})
+  </select>
+
+  <select id="queryByDetailsByPager" resultMap="maintainFixAccMap">
+    <![CDATA[
+     select fix.*,acc.*,a.accName, c.companyId, c.companyName from t_maintain_fix fix,t_maintain_fix_acc acc,t_accessories a, t_company c where fix.maintainId = acc.maintainId and a.accId = acc.accId and c.companyId = fix.companyId and fix.maintainId = #{maintainId}
+    ]]>
+    <if test="pager.user.companyId != '' and pager.user.companyId !=null">
+      and fix.companyId = #{pager.user.companyId}
+    </if>
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countByDetails" resultType="int">
+    <![CDATA[
+      select count(maintainId) from t_maintain_fix fix where maintainId = #{maintainId}
+		]]>
+    <if test="user.companyId != '' and user.companyId !=null">
+      and fix.companyId = #{user.companyId}
+    </if>
+  </select>
+
+  <update id="update" parameterType="MaintainFixAcc">
+    <![CDATA[
+      update t_maintain_fix_acc set accId = #{accId}, accCount = #{accCount} where mainAccId = #{mainAccId}
+    ]]>
+  </update>
+
+  <insert id="insert" parameterType="MaintainFixAcc">
+    <![CDATA[
+            insert into t_maintain_fix_acc (mainAccId, maintainId, accId, accCount) VALUES (uuid(),#{maintainId},#{accId},#{accCount})
+		]]>
+  </insert>
+
+</mapper>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.PermissionDAO" >
+  <resultMap id="permissionMap" type="com.gs.bean.Permission" >
+    <id column="permissionId" property="permissionId" jdbcType="VARCHAR" />
+    <result column="permissionName" property="permissionName" jdbcType="VARCHAR" />
+    <result column="permissionZhname" property="permissionZhname" jdbcType="VARCHAR" />
+    <result column="permissionDes" property="permissionDes" jdbcType="VARCHAR" />
+    <result column="moduleId" property="moduleId" jdbcType="VARCHAR" />
+    <result column="permissionStatus" property="permissionStatus" jdbcType="VARCHAR" />
+    <association property="module" resultMap="com.gs.dao.ModuleDAO.moduleMap" ></association>
+  </resultMap>
+  <select id="queryAll" resultType="permission">
+    select * from t_permission
+  </select>
+
+  <select id="queryByPager" resultMap="permissionMap" parameterType="hashmap">
+    select * from t_permission p left join t_module m on p.moduleId = m.moduleId
+    <where>
+      <if test="status != null and status != ''">
+        permissionStatus = #{status}
+      </if>
+    </where>
+      limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id = "count" resultType="int" parameterType="hashmap">
+    select count(permissionId) from t_permission
+    <where>
+      <if test="status != null and status != ''">
+        permissionStatus = #{status}
+      </if>
+    </where>
+  </select>
+
+    <select id = "countByPerName" resultType="int">
+       select count(permissionId) from t_permission where
+        permissionZhname = #{permissionZhname}
+        <if test="permissionId!=null and permissionId != ''">
+          and permissionId != #{permissionId}
+        </if>
+    </select>
+
+  <!-- 分页模糊查询 -->
+  <select id="blurredQuery" resultMap="permissionMap">
+    <![CDATA[
+           SELECT * FROM t_permission p
+           LEFT JOIN t_module m  ON p.moduleId = m.moduleId
+           where 1=1
+           ]]>
+    <if test="permission.permissionZhname != null and permission.permissionZhname != ''">
+      and p.permissionZhname like '%${permission.permissionZhname}%'
+    </if>
+    <if test="permission.permissionDes != '' and permission.permissionDes != null">
+      or p.permissionDes like '%${permission.permissionDes}%'
+    </if>
+    <if test="permission.module.moduleName != null and permission.module.moduleName != ''">
+      or  m.moduleName like '%${permission.module.moduleName}%'
+    </if>
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <select id="countByBlurred" resultType="int">
+    <![CDATA[
+           SELECT count(p.permissionId) FROM t_permission p
+           LEFT JOIN t_module m  ON p.moduleId = m.moduleId
+           where 1=1
+           ]]>
+    <if test="permission.permissionZhname != null and permission.permissionZhname != ''">
+      and p.permissionZhname like '%${permission.permissionZhname}%'
+    </if>
+    <if test="permission.permissionDes != null and permission.permissionDes != ''">
+      or p.permissionDes like '%${permission.permissionDes}%'
+    </if>
+    <if test="permission.module.moduleName != null and permission.module.moduleName != ''">
+      or m.moduleName like '%${permission.module.moduleName}%'
+    </if>
+  </select>
+
+
+
+  <insert id="insert" parameterType="permission">
+    insert into t_permission values(uuid(), #{permissionName},#{permissionZhname},#{permissionDes},#{module.moduleId}, 'Y')
+  </insert>
+
+  <update id="update" parameterType="permission">
+    update t_permission set permissionZHName=#{permissionZhname}, permissionDes=#{permissionDes}
+    where permissionId = #{permissionId}
+  </update>
+
+  <update id="updateStatus" >
+    update t_permission set permissionStatus = #{permissionStatus} where permissionId in
+    (
+     <foreach collection="permissionIds" item = "permissionId" index="index" separator=",">
+       #{permissionId}
+     </foreach>
+    )
+  </update>
+
+</mapper>

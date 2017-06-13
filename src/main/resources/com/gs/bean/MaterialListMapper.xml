@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.MaterialListDAO" >
+  <resultMap id="BaseMaterialList" type="com.gs.bean.MaterialList" >
+    <id column="materialId" property="materialId" jdbcType="VARCHAR" />
+    <result column="maintainRecordId" property="maintainRecordId" jdbcType="VARCHAR" />
+    <result column="accId" property="accId" jdbcType="VARCHAR" />
+    <result column="materialCount" property="materialCount" jdbcType="INTEGER" />
+    <result column="materialCreatedTime" property="materialCreatedTime" jdbcType="TIMESTAMP" />
+    <result column="materialStatus" property="materialStatus" jdbcType="VARCHAR" />
+    <association property="record" javaType="maintainRecord">
+        <id column="recordId" property="recordId" jdbcType="VARCHAR" />
+    </association>
+      <association  property="accessories" javaType="accessories">
+          <id column="accId" property="accId" jdbcType="VARCHAR" />
+          <result column = "accName" property="accName" />
+          <result column = "accTotal" property="accTotal" />
+      </association>
+      <association  property="materialUse" javaType="materialUse">
+         <result column="useCount" property="accCount" />
+      </association>
+      <association  property="materialReturn" javaType="materialReturn">
+          <result column="returnCount" property="accCount" />
+      </association>
+  </resultMap>
+
+  <resultMap id="materialsView" type="com.gs.bean.view.MaterialView">
+    <result property="recordId" column="recordId" jdbcType="VARCHAR"></result>
+    <result property="accId" column = "accId" jdbcType="VARCHAR"></result>
+    <result property="carPlate" column="carPlate" jdbcType="VARCHAR"></result>
+    <result property="accName" column="accName" jdbcType="VARCHAR"></result>
+    <result property="accTotal" column="accTotal" jdbcType="INTEGER"></result>
+    <result property="needAccCount" column="needAccCount" jdbcType="INTEGER"></result>
+    <result property="useAccCount" column="useAccCount" jdbcType="INTEGER"></result>
+    <result property="returnAccCount" column="returnAccCount" jdbcType="INTEGER"></result>
+    <association property="user"  javaType="user">
+      <id property="userId" column="userId"></id>
+      <result property="userName" column="userName"></result>
+    </association>
+  </resultMap>
+
+  <select id="queryByPager" resultMap="materialsView">
+    select
+    checkin.carPlate 'carPlate',
+    acc.accId 'accId',
+    acc.accName 'accName',
+    acc.accTotal 'accTotal',
+    list.materialCount  'needAccCount',
+    mause.accCount 'useAccCount',
+    mare.accCount  'returnAccCount'
+    from t_work_info workinfo
+    left join t_maintain_record record  on workinfo.recordId = record.recordId
+    left join t_checkin checkin  on checkin.checkinId = record.checkinId
+    left join
+    (select materialId, maintainRecordId, accId, sum(materialCount) 'materialCount', materialCreatedTime, materialStatus from t_material_list
+    GROUP BY maintainRecordId , accId
+    ) list on list.maintainRecordId = record.recordId
+    left join  <include refid="distincyUseOrReturn"><property name="table" value="t_material_use"/></include> mause
+    on mause.matainRecordId = list.maintainRecordId and mause.accId = list.accId
+    left join  <include refid="distincyUseOrReturn"><property name="table" value="t_material_return"/></include> mare
+    on mare.matainRecordId = list.maintainRecordId and mare.accId = list.accId
+    left join t_accessories acc  on list.accId = acc.accId
+    where workinfo.workStatus = 'N' and workinfo.userId = #{userId}
+    ORDER BY workinfo.workAssignTime asc
+    limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+  <sql id="distincyUseOrReturn">
+    (select  matainRecordId, accId, sum(accCount) 'accCount' from ${table}	GROUP BY matainRecordId , accId)
+  </sql>
+
+  <select id="count" resultType="int">
+    select  count(t_material_list.materialId) from t_material_list
+    left join t_work_info on t_material_list.maintainRecordId = t_work_info.recordId
+    left join t_user u on t_work_info.userId = u.userId
+    where t_work_info.workStatus='Y' and  u.userId = #{userId};
+  </select>
+
+  <select id="recordAccsByPager" resultMap="BaseMaterialList" parameterType="hashMap">
+      select
+      list.maintainRecordId 'recordId',
+      acc.accId,
+      acc.accName,
+      acc.accTotal,
+      list.materialCount,
+      mause.accCount 'useCount',
+      mare.accCount 'returnCount'
+      from
+        (select materialId, maintainRecordId , accId, sum(materialCount) 'materialCount' from t_material_list GROUP BY maintainRecordId, accId) list
+      LEFT JOIN
+          (select t_material_use.matainRecordId , t_material_use.accId, sum(t_material_use.accCount) 'accCount' from t_material_use GROUP BY t_material_use.matainRecordId, t_material_use.accId) mause
+          on mause.matainRecordId = list.maintainRecordId  and mause.accId = list.accId
+      left join
+          (select t_material_return.matainRecordId, t_material_return.accId, sum(t_material_return.accCount) 'accCount' from  t_material_return GROUP BY t_material_return.matainRecordId, t_material_return.accId) mare
+          on mare.matainRecordId = list.maintainRecordId and mare.accId = list.accId
+      left join t_accessories acc on list.accId = acc.accId
+      left join t_accessories_type accType on acc.accTypeId = accType.accTypeId
+      where list.maintainRecordId = #{recordId}
+      <if test="user.companyId != '' and user.companyId != null">
+          and accType.companyId = #{user.companyId}
+      </if>
+      limit #{pager.beginIndex}, #{pager.pageSize}
+  </select>
+
+    <select id="countRecordAccs" resultType="int" parameterType="hashMap">
+          select count(materialId) from (
+            select *
+              from t_material_list lis
+              GROUP BY maintainRecordId, accId
+            ) a left join t_accessories acc on acc.accId = a.accId
+        left join t_accessories_type accType on acc.accTypeId = accType.accTypeId
+        where  a.maintainRecordId = #{recordId}
+        <if test="user.companyId != '' and user.companyId != null">
+            and accType.companyId = #{user.companyId}
+        </if>
+    </select>
+
+    <insert id="insert"  parameterType="materialList">
+        insert into t_material_list (materialId,maintainRecordId,accId,materialCount, materialCreatedTime,materialStatus)values
+            (uuid(),#{maintainRecordId},#{accId},#{materialCount}, now(), 'Y')
+    </insert>
+
+    <insert id="insertList"  parameterType="java.util.List">
+		insert into t_material_list (materialId,maintainRecordId,accId,materialCount, materialCreatedTime,materialStatus)values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (uuid(),#{item.maintainRecordId},#{item.accId},#{item.materialCount}, now(), 'Y')
+        </foreach>
+    </insert>
+
+    <!-- 与流程相关的副查询 -->
+    <select id="queryFlowVarsByRecordId" parameterType="hashMap" resultMap="com.gs.dao.MaterialUseDAO.mterialFlowView" >
+      select ruvar.* from act_re_procdef repro
+      left join act_ru_execution ruexe on repro.ID_ = ruexe.PROC_DEF_ID_
+      left join act_ru_variable ruvar on ruexe.PROC_INST_ID_ = ruvar.PROC_INST_ID_
+      where repro.KEY_ = #{flowKey} and ruexe.PROC_INST_ID_ in
+        ( select DISTINCT ruvar1.PROC_INST_ID_ from act_ru_variable ruvar1
+            where repro.KEY_ = "material" and ruvar1.name_ = #{inVarName} and ruvar1.text_ = #{inVarValue} and
+             ruvar1.PROC_INST_ID_ in
+             (select DISTINCT ruvar2.PROC_INST_ID_  from act_ru_variable ruvar2
+                where repro.KEY_ = "material" and ruvar2.name_ = #{outVarName} and ruvar2.text_ = #{outVarValue}
+             )
+        )
+    </select>
+</mapper>

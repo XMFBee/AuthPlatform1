@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.gs.dao.MaintainRecordDAO">
+    <resultMap id="MaintainRecordMap" type="MaintainRecord">
+        <id column="recordId" property="recordId"/>
+        <result column="checkinId" property="checkinId"/>
+        <result column="count" property="count"/>
+        <result column="startTime" property="startTime"/>
+        <result column="endTime" property="endTime"/>
+        <result column="actualEndTime" property="actualEndTime"/>
+        <result column="recordCreatedTime" property="recordCreatedTime"/>
+        <result column="pickupTime" property="pickupTime"/>
+        <result column="recordDes" property="recordDes"/>
+        <result column="recordStatus" property="recordStatus"/>
+        <result column="currentStatus" property="currentStatus"/>
+        <result column="ifConfirm" property="ifConfirm"/>
+
+        <association property="checkin" javaType="com.gs.bean.Checkin">
+            <id column="checkinId" property="checkinId"></id>
+            <result column="user_id" property="userId" jdbcType="VARCHAR"/>
+            <result column="userName" property="userName" jdbcType="VARCHAR"/>
+            <result column="userPhone" property="userPhone" jdbcType="VARCHAR"/>
+            <result column="brandId" property="brandId" jdbcType="VARCHAR"/>
+            <result column="colorId" property="colorId" jdbcType="VARCHAR"/>
+            <result column="modelId" property="modelId" jdbcType="VARCHAR"/>
+            <result column="plateId" property="plateId" jdbcType="VARCHAR"/>
+            <result column="carPlate" property="carPlate" jdbcType="VARCHAR"/>
+            <result column="arriveTime" property="arriveTime" jdbcType="TIMESTAMP"/>
+            <result column="carMileage" property="carMileage" jdbcType="DOUBLE"/>
+            <result column="carThings" property="carThings" jdbcType="VARCHAR"/>
+            <result column="intactDegrees" property="intactDegrees" jdbcType="VARCHAR"/>
+            <result column="userRequests" property="userRequests" jdbcType="VARCHAR"/>
+            <result column="maintainOrFix" property="maintainOrFix" jdbcType="VARCHAR"/>
+            <result column="companyId" property="companyId" jdbcType="VARCHAR"/>
+            <result column="nowOil" property="nowOil" jdbcType="DOUBLE"/>
+            <result column="ifClearCar" property="ifClearCar" jdbcType="VARCHAR"/>
+
+            <association property="brand" javaType="com.gs.bean.CarBrand">
+                <id property="brandId" column="brandId"/>
+                <result property="brandName" column="brandName"/>
+            </association>
+
+            <association property="color" javaType="com.gs.bean.CarColor">
+                <id property="colorId" column="colorId"/>
+                <result property="colorName" column="colorName"/>
+            </association>
+
+            <association property="plate" javaType="com.gs.bean.CarPlate">
+                <id property="plateId" column="plateId"/>
+                <result property="plateName" column="plateName"/>
+            </association>
+
+            <association property="model" javaType="com.gs.bean.CarModel">
+                <id property="modelId" column="modelId"/>
+                <result property="modelName" column="modelName"/>
+            </association>
+
+            <association property="user" javaType="com.gs.bean.User">
+                <id property="userId" column="userId"/>
+                <result property="userName" column="userName"/>
+                <result property="userEmail" column="userEmail"/>
+                <result property="userPhone" column="user_phone"/>
+            </association>
+
+            <association property="company" javaType="com.gs.bean.Company">
+                <id property="companyId" column="companyId"/>
+                <result property="companyName" column="companyName"/>
+                <result property="companyAddress" column="companyAddress"/>
+                <result property="companyTel" column="companyTel"/>
+                <result property="companyLogo" column="companyLogo"/>
+            </association>
+        </association>
+    </resultMap>
+
+    <!-- 查询所有可用维修保养记录 -->
+    <select id="queryByPager" resultMap="MaintainRecordMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+            select m.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName, company.companyId,
+            company.companyName,company.companyAddress,
+            company.companyAddress, company.companyTel,
+            company.companyLogo, cb.brandId, cb.brandName
+            from t_maintain_record m, t_checkin ck, t_car_brand cb,
+             t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+              where m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+              and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+             and ck.plateId = cp.plateId and ck.companyId = company.companyId
+             and m.recordStatus = 'Y'
+         ]]>
+        <if test="user.companyId != '' and user.companyId != null">
+            and ck.companyId = #{user.companyId}
+        </if>
+        order by m.recordCreatedTime Desc
+        limit #{beginIndex}, #{pageSize}
+  </select>
+    <!-- 查询所有可用维修保养记录个数 -->
+    <select id="count" resultType="int" parameterType="com.gs.bean.User">
+        select count(recordId) from t_maintain_record mr, t_checkin ck
+        where mr.checkinId = ck.checkinId and recordStatus = 'Y'
+        <if test="companyId != '' and companyId != null">
+            and ck.companyId = #{companyId}
+        </if>
+    </select>
+
+    <!-- 根据id查询维修保养记录 -->
+    <select id="queryById" resultMap="MaintainRecordMap">
+    <![CDATA[
+        select m.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+        cm.modelId, cm.modelName, company.companyId,
+        company.companyName,company.companyAddress,
+        company.companyAddress, company.companyTel,
+        company.companyLogo, cb.brandId, cb.brandName
+        from t_maintain_record m, t_checkin ck, t_car_brand cb,
+        t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+        where m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+        and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+        and ck.plateId = cp.plateId and ck.companyId = company.companyId
+        and m.recordStatus = 'Y' and m.recordId = #{id}
+    ]]>
+  </select>
+
+    <!-- 查询所有禁用维修保养记录 -->
+    <select id="queryByPagerDisable" resultMap="MaintainRecordMap" parameterType="com.gs.common.bean.Pager">
+     <![CDATA[
+         select m.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName, company.companyId,
+            company.companyName,company.companyAddress,
+            company.companyAddress, company.companyTel,
+            company.companyLogo, cb.brandId, cb.brandName
+            from t_maintain_record m, t_checkin ck, t_car_brand cb,
+             t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+              where m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+              and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+             and ck.plateId = cp.plateId and ck.companyId = company.companyId
+             and m.recordStatus = 'N'
+     ]]>
+      <if test="user.companyId != '' and user.companyId != null">
+          and ck.companyId = #{user.companyId}
+      </if>
+      order by m.recordCreatedTime Desc
+      limit #{beginIndex}, #{pageSize}
+  </select>
+    <!-- 查询所有禁用维修保养记录个数 -->
+    <select id="countByDisable" resultType="int" parameterType="com.gs.bean.User">
+    select count(recordId) from t_maintain_record mr, t_checkin ck where
+        mr.checkinId = ck.checkinId and recordStatus = 'N'
+        <if test="companyId != '' and companyId != null">
+            and ck.companyId = #{companyId}
+        </if>
+  </select>
+
+    <!-- 查询所有维修保养记录 -->
+    <select id="queryAll" resultMap="MaintainRecordMap" parameterType="com.gs.bean.User">
+    select m.*,ck.checkinId as checkin_id,ck.userName as user_name
+    from t_maintain_record m, t_checkin ck where m.checkinId = ck.checkinId
+        <if test="companyId != '' and companyId != null">
+            and ck.companyId = #{companyId}
+        </if>
+  </select>
+    <!-- 冻结维修保养记录 -->
+    <update id="inactive" parameterType="string">
+    update t_maintain_record set recordStatus = 'N' where recordId = #{recordId}
+  </update>
+    <!-- 激活维修保养记录 -->
+    <update id="active" parameterType="string">
+    update t_maintain_record set recordStatus = 'Y' where recordId = #{recordId}
+  </update>
+    <!--添加维修保养记录 -->
+    <insert id="insert" parameterType="MaintainRecord">
+    insert into t_maintain_record(recordId,checkinId,startTime,endTime,actualEndTime,recordCreatedTime,pickupTime,recordDes,recordStatus,currentStatus,ifConfirm)
+    values(uuid(),#{checkinId},#{startTime},#{endTime},#{actualEndTime},now(),#{pickupTime},#{recordDes},'Y',#{currentStatus},#{ifConfirm});
+  </insert>
+    <!-- 修改维修保养记录 -->
+    <update id="update" parameterType="MaintainRecord">
+      update t_maintain_record set startTime=#{startTime},endTime=#{endTime},actualEndTime=#{actualEndTime},recordCreatedTime=#{recordCreatedTime},pickupTime=#{pickupTime},recordDes=#{recordDes}, currentStatus=#{currentStatus}, ifConfirm=#{ifConfirm} where recordId = #{recordId}
+    </update>
+    <!-- 修改维修保养记录当前状态 -->
+    <update id="updateCurrentStatus">
+        update t_maintain_record set currentStatus=#{currentStatus} where recordId in (${recordId})
+    </update>
+
+    <!-- 修改维修保养实际结束时间 -->
+    <update id="updateActualEndTime">
+        update t_maintain_record set actualEndTime=now() where recordId = #{maintainRecordId}
+    </update>
+
+    <!-- 修改维修保养提车时间 -->
+    <update id="updatePickupTime">
+        update t_maintain_record set pickupTime=now() where recordId = #{maintainRecordId}
+    </update>
+
+    <!-- 维修保养记录分页模糊查询 -->
+    <select id="blurredQuery" resultMap="MaintainRecordMap">
+        <![CDATA[
+            select  m.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName, company.companyId,
+            company.companyName,company.companyAddress,
+            company.companyAddress, company.companyTel,
+            company.companyLogo, cb.brandId, cb.brandName
+            from t_maintain_record m, t_checkin ck, t_car_brand cb,
+            t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+            where 1=1 and m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+            and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+            and ck.plateId = cp.plateId and ck.companyId = company.companyId
+            and m.recordStatus = 'Y'
+      ]]>
+        <if test="pager.user.companyId != '' and pager.user.companyId != null">
+            and ck.companyId = #{pager.user.companyId}
+        </if>
+        and(
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null">
+            ck.userName like '%${maintainRecord.checkin.userName}%'
+        </if>
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null and
+            maintainRecord.checkin.companyId != '' and maintainRecord.checkin.companyId != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.companyId != '' and maintainRecord.checkin.companyId != null">
+            company.companyName like '%${maintainRecord.checkin.companyId}%'
+        </if>
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null and
+            maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null">
+            ck.carPlate like '%${maintainRecord.checkin.carPlate}%'
+        </if>
+        <if test="maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null and
+            maintainRecord.checkin.userPhone != '' and maintainRecord.checkin.userPhone != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.userPhone != '' and maintainRecord.checkin.userPhone != null">
+            ck.userPhone like '%${maintainRecord.checkin.userPhone}%'
+        </if>
+        ) order by m.recordCreatedTime Desc
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <!-- 维修保养记录分页模糊查询个数 -->
+    <select id="countByBlurred" resultType="int">
+        <![CDATA[
+             select  count(m.recordId) from t_maintain_record m, t_checkin ck, t_car_brand cb,
+            t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+            where 1=1 and m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+            and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+            and ck.plateId = cp.plateId and ck.companyId = company.companyId
+            and m.recordStatus = 'Y'
+      ]]>
+        <if test="user.companyId != '' and user.companyId != null">
+            and ck.companyId = #{user.companyId}
+        </if>
+        and(
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null">
+            ck.userName like '%${maintainRecord.checkin.userName}%'
+        </if>
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null and
+            maintainRecord.checkin.companyId != '' and maintainRecord.checkin.companyId != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.companyId != '' and maintainRecord.checkin.companyId != null">
+            company.companyName like '%${maintainRecord.checkin.companyId}%'
+        </if>
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null and
+            maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null">
+            ck.carPlate like '%${maintainRecord.checkin.carPlate}%'
+        </if>
+        <if test="maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null and
+            maintainRecord.checkin.userPhone != '' and maintainRecord.checkin.userPhone != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.userPhone != '' and maintainRecord.checkin.userPhone != null">
+            ck.userPhone like '%${maintainRecord.checkin.userPhone}%'
+        </if>)
+    </select>
+
+    <!-- 分页模糊查询, 此模糊查询为提车提醒的-->
+    <select id="blurredQueryByRemind" resultMap="MaintainRecordMap">
+        <![CDATA[
+            select  m.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName, company.companyId,
+            company.companyName,company.companyAddress,
+            company.companyAddress, company.companyTel,
+            company.companyLogo, cb.brandId, cb.brandName
+            from t_maintain_record m, t_checkin ck, t_car_brand cb,
+            t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+            where 1=1 and m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+            and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+            and ck.plateId = cp.plateId and ck.companyId = company.companyId
+            and m.recordStatus = 'Y' and m.currentStatus = '待提醒'
+      ]]>
+        <if test="pager.user.companyId != '' and pager.user.companyId != null">
+            and ck.companyId = #{pager.user.companyId}
+        </if>
+        and(
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null">
+            ck.userName like '%${maintainRecord.checkin.userName}%'
+        </if>
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null and
+            maintainRecord.checkin.companyId != '' and maintainRecord.checkin.companyId != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.companyId != '' and maintainRecord.checkin.companyId != null">
+            company.companyName like '%${maintainRecord.checkin.companyId}%'
+        </if>
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null and
+            maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null">
+            ck.carPlate like '%${maintainRecord.checkin.carPlate}%'
+        </if>
+        <if test="maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null and
+            maintainRecord.checkin.userPhone != '' and maintainRecord.checkin.userPhone != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.userPhone != '' and maintainRecord.checkin.userPhone != null">
+            ck.userPhone like '%${maintainRecord.checkin.userPhone}%'
+        </if>
+        ) order by m.recordCreatedTime Desc
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <!-- 分页模糊查询个数, 此模糊查询为提车提醒的 -->
+    <select id="countByBlurredByRemind" resultType="int">
+        <![CDATA[
+             select  count(m.recordId) from t_maintain_record m, t_checkin ck, t_car_brand cb,
+            t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+            where 1=1 and m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+            and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+            and ck.plateId = cp.plateId and ck.companyId = company.companyId
+            and m.recordStatus = 'Y' and m.currentStatus = '待提醒'
+      ]]>
+        <if test="user.companyId != '' and user.companyId != null">
+            and ck.companyId = #{user.companyId}
+        </if>
+        and(
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null">
+            ck.userName like '%${maintainRecord.checkin.userName}%'
+        </if>
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null and
+            maintainRecord.checkin.companyId != '' and maintainRecord.checkin.companyId != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.companyId != '' and maintainRecord.checkin.companyId != null">
+            company.companyName like '%${maintainRecord.checkin.companyId}%'
+        </if>
+        <if test="maintainRecord.checkin.userName != '' and maintainRecord.checkin.userName != null and
+            maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null">
+            ck.carPlate like '%${maintainRecord.checkin.carPlate}%'
+        </if>
+        <if test="maintainRecord.checkin.carPlate != '' and maintainRecord.checkin.carPlate != null and
+            maintainRecord.checkin.userPhone != '' and maintainRecord.checkin.userPhone != null">
+            or
+        </if>
+        <if test="maintainRecord.checkin.userPhone != '' and maintainRecord.checkin.userPhone != null">
+            ck.userPhone like '%${maintainRecord.checkin.userPhone}%'
+        </if>)
+    </select>
+
+    <!--  提车提醒未提醒维修保养记录查询 -->
+    <select id="queryByPagerRemindNo" resultMap="MaintainRecordMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+            select m.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName, company.companyId,
+            company.companyName,company.companyAddress,
+            company.companyAddress, company.companyTel,
+            company.companyLogo, cb.brandId, cb.brandName
+            from t_maintain_record m, t_checkin ck, t_car_brand cb,
+             t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+              where m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+              and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+             and ck.plateId = cp.plateId and ck.companyId = company.companyId
+             and m.recordStatus = 'Y' and m.currentStatus = '待提醒'
+         ]]>
+        <if test="user.companyId != '' and user.companyId != null">
+            and ck.companyId = #{user.companyId}
+        </if>
+        order by m.recordCreatedTime Desc
+        limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <select id="countByRemindNo" resultType="int" parameterType="com.gs.bean.User">
+        select count(recordId) from t_maintain_record mr, t_checkin ck where
+        mr.checkinId = ck.checkinId and recordStatus = 'Y' and mr.currentStatus = '待提醒'
+        <if test="companyId != '' and companyId != null">
+            and ck.companyId = #{companyId}
+        </if>
+    </select>
+
+    <!--  提车提醒已提醒维修保养记录查询 -->
+    <select id="queryByPagerRemindYes" resultMap="MaintainRecordMap" parameterType="com.gs.common.bean.Pager">
+        <![CDATA[
+            select m.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName, company.companyId,
+            company.companyName,company.companyAddress,
+            company.companyAddress, company.companyTel,
+            company.companyLogo, cb.brandId, cb.brandName
+            from t_maintain_record m, t_checkin ck, t_car_brand cb,
+             t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+              where m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+              and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+             and ck.plateId = cp.plateId and ck.companyId = company.companyId
+             and m.recordStatus = 'Y'
+         ]]>
+        <if test="user.companyId != '' and user.companyId != null">
+            and ck.companyId = #{user.companyId}
+        </if>
+        and (m.currentStatus = '待结算' or m.currentStatus = '待收费' or m.currentStatus = '已收费')
+        order by m.recordCreatedTime Desc
+        limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <select id="countByRemindYes" resultType="int" parameterType="com.gs.bean.User">
+        select count(recordId) from t_maintain_record mr, t_checkin ck where
+        mr.checkinId = ck.checkinId and recordStatus = 'Y'
+        <if test="companyId != '' and companyId != null">
+            and ck.companyId = #{companyId}
+        </if>
+        and (mr.currentStatus = '待结算' or mr.currentStatus = '待收费' or mr.currentStatus = '已收费')
+    </select>
+
+    <!-- 查询所有可用维修保养记录 -->
+    <select id="queryByOwner" resultMap="MaintainRecordMap">
+        <![CDATA[
+            select m.*, ck.*, cc.colorId, cc.colorName, cp.plateId, cp.plateName,
+            cm.modelId, cm.modelName, company.companyId,
+            company.companyName,company.companyAddress,
+            company.companyAddress, company.companyTel,
+            company.companyLogo, cb.brandId, cb.brandName
+            from t_maintain_record m, t_checkin ck, t_car_brand cb,
+             t_car_color cc, t_car_model cm, t_car_plate cp, t_company company
+              where m.checkinId = ck.checkinId and ck.brandId = cb.brandId
+              and ck.colorId = cc.colorId and ck.modelId = cm.modelId
+             and ck.plateId = cp.plateId and ck.companyId = company.companyId
+             and m.recordStatus = 'Y' and ck.userId = #{userId}
+         ]]>
+        order by m.recordCreatedTime Desc
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+    <!-- 查询所有可用维修保养记录个数 -->
+    <select id="countByOwner" resultType="int">
+        select count(recordId) from t_maintain_record mr, t_checkin ck
+        where mr.checkinId = ck.checkinId and recordStatus = 'Y' and ck.userId = #{userId}
+    </select>
+
+    <!--维修记录的报表显示-->
+
+    <!--员工工单报表-->
+    <select id="queryByCondition" resultMap="MaintainRecordMap">
+        <![CDATA[
+         select COUNT(mr.recordId) as count, mr.recordCreatedTime from t_maintain_record mr
+				LEFT JOIN t_checkin ck on ck.checkinId =mr.checkinId
+               LEFT JOIN t_company c on c.companyId = c.companyId
+			where mr.recordStatus = 'Y'and c.companyId = #{companyId} and
+			mr.recordCreatedTime >= #{start} and mr.recordCreatedTime <= #{end}
+        ]]>
+        <if test="maintainOrFix ==0">
+        </if>
+        <if test="maintainOrFix ==1">
+            and ck.maintainOrFix = '保养'
+        </if>
+        <if test="maintainOrFix ==2">
+            and ck.maintainOrFix = '维修'
+        </if>
+        <if test="type =='year'">
+            group by date_format(mr.recordCreatedTime, '%Y') ORDER BY mr.recordCreatedTime ASC;
+        </if>
+        <if test="type =='quarter'">
+            group by concat(date_format(mr.recordCreatedTime, '%Y'),FLOOR((date_format(mr.recordCreatedTime, '%m')+2)/3)) ORDER BY mr.recordCreatedTime ASC;
+        </if>
+        <if test="type =='month'">
+            group by date_format(mr.recordCreatedTime, '%y-%m') ORDER BY mr.recordCreatedTime ASC;
+        </if>
+        <if test="type =='week'">
+            group by date_format(mr.recordCreatedTime, '%y-%m') ORDER BY mr.recordCreatedTime ASC;
+        </if>
+        <if test="type =='day'">
+            group by date(mr.recordCreatedTime) ORDER BY mr.recordCreatedTime ASC;
+        </if>
+
+    </select>
+
+    <select id="queryByPagerSix" resultMap="MaintainRecordMap">
+        SELECT m.*, ck.*,ck.userId as user_id,u.userEmail,u.userPhone as user_phone
+        FROM t_maintain_record m, t_checkin ck,t_user u
+        WHERE m.checkinId = ck.checkinId and ck.userId = u.userId
+        AND m.recordStatus = 'Y' AND #{actualEndTime} >= m.actualEndTime
+        <if test="pager.user.companyId != '' and pager.user.companyId != null">
+            and ck.companyId = #{pager.user.companyId}
+        </if>
+        group by ck.userId
+        order by m.recordCreatedTime Desc
+        limit #{pager.beginIndex}, #{pager.pageSize}
+    </select>
+
+    <select id="countSix" resultType="int">
+        SELECT count(*) FROM t_maintain_record m, t_checkin ck,t_user u
+        WHERE m.checkinId = ck.checkinId and ck.userId = u.userId
+        AND m.recordStatus = 'Y' AND #{actualEndTime} >= m.actualEndTime
+        <if test="user.companyId != '' and user.companyId != null">
+            and ck.companyId = #{user.companyId}
+        </if>
+        group by ck.userId
+    </select>
+
+    <select id="queryByPagerSuccess" resultMap="MaintainRecordMap" parameterType="com.gs.common.bean.Pager">
+        SELECT m.*, ck.*,ck.userId as user_id,u.userEmail,u.userPhone as user_phone
+        FROM t_maintain_record m, t_checkin ck,t_user u
+        WHERE m.checkinId = ck.checkinId and ck.userId = u.userId
+        AND m.recordStatus = 'Y'
+        <if test="user.companyId != '' and user.companyId != null">
+            and ck.companyId = #{user.companyId}
+        </if>
+        group by u.userEmail, u.userPhone
+        order by m.recordCreatedTime Desc
+        limit #{beginIndex}, #{pageSize}
+    </select>
+
+    <select id="countSuccess" resultType="int" parameterType="com.gs.bean.User">
+        SELECT count(*) FROM t_maintain_record m, t_checkin ck,t_user u
+        WHERE m.checkinId = ck.checkinId and ck.userId = u.userId
+        AND m.recordStatus = 'Y'
+        <if test="companyId != '' and companyId != null">
+            and ck.companyId = #{companyId}
+        </if>
+        group by u.userEmail, u.userPhone
+    </select>
+
+    <select id="queryCheckinAll" resultMap="MaintainRecordMap">
+        SELECT m.*, ck.*,ck.userId as user_id,u.userEmail,u.userPhone as user_phone
+        FROM t_maintain_record m, t_checkin ck,t_user u
+        WHERE m.checkinId = ck.checkinId and ck.userId = u.userId
+        AND m.recordStatus = 'Y' and u.userId in (#{userIds})
+        <if test="user.companyId != '' and user.companyId != null">
+            and ck.companyId = #{user.companyId}
+        </if>
+        order by m.recordCreatedTime Desc
+    </select>
+
+</mapper>
